@@ -64,7 +64,13 @@ class LLM:
             kwargs["fallbacks"] = "default"
 
         try:
-            response = self.client.beta.messages.parse(**kwargs)
+            if max_tokens > 16000:
+                # Large outputs (a whole resume, a career plan) must stream, or the SDK
+                # refuses them as possibly longer than its 10-minute request limit.
+                with self.client.beta.messages.stream(**kwargs) as stream:
+                    response = stream.get_final_message()
+            else:
+                response = self.client.beta.messages.parse(**kwargs)
         except anthropic.AuthenticationError as e:
             raise LLMError("ANTHROPIC_API_KEY was rejected; check job-right/.env") from e
         except anthropic.RateLimitError as e:
