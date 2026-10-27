@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job report {{ day }}</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1c1f24; --muted:#5b6270; --line:#e3e6eb; --accent:#1f5fbf; --ok:#1d7a46; --warn:#a15c00; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111418; --card:#1a1e24; --ink:#e7eaef; --muted:#9aa3b0; --line:#2a3038; --accent:#6ea8ff; --ok:#4cc38a; --warn:#f0a54a; --bad:#ff7b72; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:28px 0 10px; }
+  .muted { color:var(--muted); }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:16px; }
+  .tile { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .tile b { display:block; font-size:24px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+  th { color:var(--muted); font-weight:600; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Job report — {{ day }}</h1>
+  <div class="muted">Claude spend today ${{ "%.2f"|format(spend_day) }} · this month ${{ "%.2f"|format(spend_month) }} of ${{ budget }}</div>
+  <div class="tiles">
+    <div class="tile"><b>{{ found }}</b>new jobs found</div>
+    <div class="tile"><b>{{ applied|length }}</b>applied today</div>
+    <div class="tile"><b>{{ ready|length }}</b>ready for your approval</div>
+    <div class="tile"><b>{{ needs_you|length }}</b>need you</div>
+  </div>
+
+  <h2>Applied today</h2>
+  {% if applied %}
+  <table><tr><th>Company</th><th>Role</th><th>Source</th><th>Skills</th><th>Fit</th></tr>
+  {% for j in applied %}<tr><td>{{ j.company }}</td><td><a href="{{ j.url }}">{{ j.title }}</a></td><td>{{ j.source }}</td><td>{{ j.skill_match }}%</td><td>{{ j.fit_score }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="muted">None yet.</p>{% endif %}
+
+  <h2>Ready for your approval</h2>
+  {% if ready %}
+  <table><tr><th>Company</th><th>Role</th><th>Source</th><th>Skills</th><th>Fit</th></tr>
+  {% for j in ready %}<tr><td>{{ j.company }}</td><td><a href="{{ j.url }}">{{ j.title }}</a></td><td>{{ j.source }}</td><td>{{ j.skill_match }}%</td><td>{{ j.fit_score }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="muted">Nothing waiting.</p>{% endif %}
+
+  <h2>Need you</h2>
+  {% if needs_you %}
+  <table><tr><th>Company</th><th>Role</th><th>Why</th></tr>
+  {% for j in needs_you %}<tr><td>{{ j.company }}</td><td><a href="{{ j.url }}">{{ j.title }}</a></td><td>{{ j.reason }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="muted">Nothing needs you.</p>{% endif %}
+</main>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "resume" %}
+{% block step %}
+<h1>2 · Upload your resume</h1>
+<p>Your resume becomes your <b>master profile</b>: every fact, skill and project, each with an id. Every tailored resume is built only from these facts and fact-checked against them, so nothing gets invented. You review it on the next screen.</p>
+<div class="card">
+  <form method="post" action="/setup/resume" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required>
+    <p class="help">PDF or Word (.docx). Text-based PDFs work best; a scanned image cannot be read. This takes about a minute.</p>
+    <p><button class="primary">Upload and read</button></p>
+  </form>
+</div>
+{% if status.resume %}<p>Already imported. <a href="/setup/profile">Review your profile</a>, or upload again to replace it.</p>{% endif %}
+{% endblock %}

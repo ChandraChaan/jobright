@@ -1,0 +1,16 @@
+# Personal data, generated resumes, local database and browser sessions
+data/
+.env
+browser-profile/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

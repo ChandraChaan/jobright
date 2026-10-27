@@ -1,0 +1,47 @@
+# Settings for the fictional test user (see master_profile.yaml).
+profile:
+  country: IN
+  cities: [Bengaluru, Hyderabad]
+  sites: [linkedin, naukri, ats]
+  setup_complete: true
+
+targets:
+  title_exclude: [Intern, Trainee, Junior, Fresher, QA, Test, Tester, Sales, Marketing, Data Scientist, Data Engineer,
+                  Database, SRE, Site Reliability, Network, Embedded, Firmware, Product Manager, Program Manager,
+                  Analyst, Operations, Account, Finance, Legal, Tax, Recruiter, Support]
+  locations: [Bangalore, Bengaluru, Hyderabad, India, Remote]
+
+tracks:
+  mobile:
+    weight: 1.0
+    min_fit: 50
+    titles: [Flutter, Mobile, Android, iOS, Dart, App Developer]
+  architecture:
+    weight: 1.05
+    min_fit: 55
+    titles: [Software Architect, Technical Architect, Solution Architect, Solutions Architect, Principal Engineer,
+             Principal Software Engineer, Staff Engineer, Staff Software Engineer]
+  leadership:
+    weight: 1.05
+    min_fit: 55
+    titles: [Engineering Manager, Engineering Lead, Tech Lead, Technical Lead, Lead Engineer, Lead Software Engineer]
+  ai_applications:
+    weight: 1.1
+    min_fit: 60
+    stretch: true
+    titles: [AI Engineer, GenAI, Generative AI, LLM, Applied AI]
+  fullstack:
+    weight: 0.9
+    min_fit: 60
+    stretch: true
+    titles: [Full Stack, Fullstack, Full-Stack]
+  backend_cloud:
+    weight: 0.85
+    min_fit: 62
+    stretch: true
+    titles: [Node.js, NodeJS, Backend, Back End, Serverless, Cloud Engineer]
+
+exclude_companies: [Acme Learning]
+
+resume:
+  file_stem: Asha_Verma

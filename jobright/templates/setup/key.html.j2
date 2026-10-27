@@ -1,0 +1,24 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "key" %}
+{% block step %}
+<h1>1 · Your Claude API key</h1>
+<p>jobright uses Claude to read job descriptions, write and fact-check your resumes, and understand application forms. You use your own key, so your data goes only to Anthropic and you control the spend.</p>
+<div class="card">
+  <ol style="margin-top:0">
+    <li>Open <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com → API keys</a> and create a key.</li>
+    <li>Add a little credit and set a <b>monthly spend limit</b> there (about $20–60 covers a busy month).</li>
+    <li>Paste the key below. It is saved only in your jobright folder.</li>
+  </ol>
+  <form method="post" action="/setup/key">
+    <div class="form-grid">
+      <label>Anthropic API key {% if status.key %}<span class="st-applied">(saved)</span>{% endif %}</label>
+      <input type="password" name="anthropic_key" placeholder="sk-ant-…" autocomplete="off">
+      {% if "reed" in (country.sites or []) %}
+      <label>Reed API key (UK) {% if has_reed %}<span class="st-applied">(saved)</span>{% endif %}<div class="help">Free at <a href="https://www.reed.co.uk/developers/jobseeker" target="_blank">reed.co.uk/developers</a></div></label>
+      <input type="password" name="reed_key" placeholder="optional" autocomplete="off">
+      {% endif %}
+    </div>
+    <p><button class="primary">Save</button></p>
+  </form>
+</div>
+{% endblock %}

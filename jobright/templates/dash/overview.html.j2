@@ -1,0 +1,61 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<div class="row" style="justify-content:space-between">
+  <h1>Today, {{ data.day }}</h1>
+  <div class="row">
+    {% if running %}<span class="chip">A run is in progress…</span>{% endif %}
+    <form class="inline" method="post" action="/run"><button>Run now</button></form>
+    {% if data.ready %}
+    <form class="inline" method="post" action="/approve-ready"><input type="hidden" name="now" value="1"><button class="primary">Approve all {{ data.ready|length }} and apply</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="tiles">
+  <div class="card tile"><b>{{ data.found }}</b>new jobs found</div>
+  <div class="card tile"><b>{{ data.applied|length }}</b>applied today</div>
+  <div class="card tile"><b>{{ data.ready|length }}</b>ready for review</div>
+  <div class="card tile"><b>{{ data.needs_you|length }}</b>need you</div>
+  <div class="card tile"><b>{{ pending }}</b>questions to answer</div>
+  <div class="card tile"><b>${{ "%.2f"|format(data.spend_month) }}</b>Claude spend this month
+    <div class="bar"><i style="width:{{ [100, (100 * data.spend_month / data.budget)|round]|min }}%"></i></div>
+    <span class="muted">of ${{ data.budget }} · today ${{ "%.2f"|format(data.spend_day) }}</span></div>
+</div>
+
+<div class="grid2" style="margin-top:14px">
+  <div>
+    <h2>Pipeline</h2>
+    <div class="table"><table>
+      <tr><th>Stage</th><th>Jobs</th></tr>
+      {% for st, label in [("discovered","Waiting to be read"),("filtered","Filtered out (title / location / company)"),("skipped","Below your thresholds"),("screened","Passed, waiting for tailoring"),("ready","Resume ready, waiting for approval"),("approved","Approved, will be submitted"),("unverified","Submitted, confirming"),("applied","Applied (confirmed)"),("needs_you","Need you"),("salary_review","Budget below your current salary"),("unavailable","Posting removed / closed"),("duplicate","Duplicates skipped"),("failed","Failed"),("interview","Interview"),("offer","Offer"),("rejected","Rejected")] %}
+      <tr><td><a href="/jobs?status={{ st }}">{{ label }}</a></td><td class="num">{{ data.counts.get(st, 0) }}</td></tr>
+      {% endfor %}
+    </table></div>
+  </div>
+  <div>
+    <h2>Applied today vs limits</h2>
+    <div class="card">
+      {% for src in sites %}{% set key = src ~ "_per_day" %}
+      <div>{{ src|capitalize }} <span class="muted">{{ applied[src] }} / {{ limits.get(key, 20) }}</span> <span class="chip">{{ "auto" if auto.get(src) else "review mode" }}</span>
+        <div class="bar"><i style="width:{{ [100, (100 * applied[src] / limits.get(key, 20))|round]|min }}%"></i></div></div><br>
+      {% endfor %}
+      {% set ats_n = applied.greenhouse + applied.lever + applied.ashby %}
+      <div>Company sites <span class="muted">{{ ats_n }} / {{ limits.ats_per_day }}</span> <span class="chip">{{ "auto" if auto.ats else "review mode" }}</span>
+        <div class="bar"><i style="width:{{ [100, (100 * ats_n / limits.ats_per_day)|round]|min }}%"></i></div></div>
+      <p class="muted" style="margin-bottom:0">Applies when skill match ≥ {{ rules.min_skill_match }}% and fit reaches each track's bar. Change it in <a href="/setup">Setup</a> or your settings.yaml.</p>
+    </div>
+  </div>
+</div>
+
+<h2>Recent activity</h2>
+<div class="table"><table>
+  <tr><th>When</th><th>Job</th><th>Event</th></tr>
+  {% for e in events %}
+  <tr><td class="num muted">{{ e.ts[5:16].replace("T", " ") }}</td>
+      <td>{% if e.job_id %}<a href="/jobs/{{ e.job_id }}">{{ e.company }} — {{ e.title }}</a>{% else %}<span class="muted">run</span>{% endif %}</td>
+      <td>{{ e.kind }}{% if e.kind == "status" %}: <span class="st-{{ e.detail }}">{{ e.detail }}</span>{% elif e.kind == "apply" %}: {{ (e.detail|fromjson).get("status") }} — {{ (e.detail|fromjson).get("detail") }}{% endif %}</td></tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">Nothing yet. Press "Run now" or run <code>jobright run</code>.</td></tr>
+  {% endfor %}
+</table></div>
+{% endblock %}

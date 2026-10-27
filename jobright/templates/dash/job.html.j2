@@ -1,0 +1,99 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ job.title }} — {{ job.company }}{% endblock %}
+{% block body %}
+{% set a = job.analysis_json|fromjson %}
+<div class="row" style="justify-content:space-between; align-items:flex-start">
+  <div>
+    <h1 style="margin-bottom:2px">{{ job.title }}</h1>
+    <div class="muted">{{ job.company }} · {{ job.location or "location not stated" }} · <span class="chip">{{ job.source }}</span> <span class="chip">{{ job.apply_type }}</span> · <a href="{{ job.url }}" target="_blank">open posting</a></div>
+  </div>
+  <div class="row">
+    {% if job.status in ("ready", "needs_you", "failed", "screened") and job.resume_pdf %}
+    <form class="inline" method="post" action="/jobs/{{ job.id }}/approve"><input type="hidden" name="now" value="1"><button class="primary">Approve and apply now</button></form>
+    <form class="inline" method="post" action="/jobs/{{ job.id }}/approve"><button>Approve (next run)</button></form>
+    {% endif %}
+    <form class="inline" method="post" action="/jobs/{{ job.id }}/status"><input type="hidden" name="status" value="skipped"><button>Skip</button></form>
+  </div>
+</div>
+
+<div class="tiles" style="margin-top:14px">
+  <div class="card tile"><b class="st-{{ job.status }}">{{ job.status }}</b>status</div>
+  <div class="card tile"><b>{{ job.priority if job.priority is not none else "–" }}</b>priority · {{ job.track or "?" }} track</div>
+  <div class="card tile"><b>{{ job.skill_match ~ "%" if job.skill_match is not none else "–" }}</b>skill match</div>
+  <div class="card tile"><b>{{ job.fit_score if job.fit_score is not none else "–" }}</b>fit score</div>
+  {% if report %}<div class="card tile"><b>{{ report.keyword_coverage.tailored_resume }}</b>ATS keywords in resume</div>
+  <div class="card tile"><b>{{ report.verification }}</b>fact check</div>{% endif %}
+</div>
+
+{% if job.reason %}<p><b>Why:</b> {{ job.reason }}</p>{% endif %}
+{% if job.evidence %}<p class="st-applied"><b>Confirmed by the site:</b> “{{ job.evidence }}”</p>{% endif %}
+{% if job.missing_json and job.status == "needs_you" %}
+<div class="card" style="margin-bottom:10px"><b>Questions blocking this application</b>
+  <ul>{% for m in job.missing_json|fromjson %}<li>{{ m }}</li>{% endfor %}</ul>
+  <span class="muted">Answer them on the <a href="/questions">Questions</a> page; the next run retries this job by itself.</span></div>
+{% endif %}
+{% if job.budget_max_lpa or job.status == "salary_review" %}
+<div class="card" style="margin-bottom:10px">
+  <b>Budget:</b> {{ job.salary_text or "not stated" }}{% if job.budget_max_lpa %} (up to {{ "%g"|format(job.budget_max_lpa) }} LPA){% endif %}
+  {% if job.expected_ctc_override %} · <b>your expected CTC for this job:</b> {{ "%g"|format(job.expected_ctc_override) }} LPA{% endif %}
+  {% if job.status == "salary_review" %}
+  <form method="post" action="/jobs/{{ job.id }}/salary" class="row" style="margin-top:8px">
+    <span>The budget is below your current CTC. To apply anyway, set the expected CTC to give for this job:</span>
+    <input type="text" name="expected_ctc" placeholder="e.g. 30" style="width:120px">
+    <button class="primary">Approve with this CTC</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="grid2" style="margin-top:6px">
+  <div>
+    {% if job.resume_pdf %}
+    <h2>Tailored resume <a href="/jobs/{{ job.id }}/resume.pdf" target="_blank" style="font-weight:400">open PDF</a></h2>
+    <iframe src="/jobs/{{ job.id }}/resume.pdf" style="width:100%; height:820px; border:1px solid var(--line); border-radius:10px; background:#fff"></iframe>
+    {% endif %}
+    <h2>Job description</h2>
+    <div class="card"><pre>{{ job.description }}</pre></div>
+  </div>
+  <div>
+    {% if a %}
+    <h2>Fit</h2>
+    <div class="card">
+      <p style="margin-top:0">{{ a.fit_reason }}</p>
+      {% if a.realism_reason %}<p><b>{{ "Realistic" if a.realistic else "Not realistic yet" }}:</b> {{ a.realism_reason }}</p>{% endif %}
+      {% if a.growth_score is defined %}<p class="muted">Role family {{ a.role_family }} · growth {{ a.growth_score }}/100</p>{% endif %}
+      {% if a.gaps %}<b>Gaps</b><ul>{% for g in a.gaps %}<li>{{ g }}</li>{% endfor %}</ul>{% endif %}
+      <b>Required skills</b><div class="row" style="margin-top:6px">{% for s in a.required_skills %}<span class="chip">{{ s }}</span>{% endfor %}</div>
+    </div>
+    {% endif %}
+    {% if report and report.keyword_coverage.still_missing %}
+    <h2>Keywords not in your profile</h2>
+    <div class="card"><div class="row">{% for k in report.keyword_coverage.still_missing %}<span class="chip">{{ k }}</span>{% endfor %}</div>
+      <p class="muted" style="margin-bottom:0">If any of these are true for you, add them to data/master_profile.yaml and future resumes will use them.</p></div>
+    {% endif %}
+    <h2>Your status</h2>
+    <div class="card">
+      <form method="post" action="/jobs/{{ job.id }}/status">
+        <select name="status">{% for s in user_statuses %}<option {{ "selected" if s == job.status }}>{{ s }}</option>{% endfor %}</select>
+        <textarea name="notes" rows="3" placeholder="Notes (recruiter, interview date…)" style="margin-top:8px">{{ job.notes or "" }}</textarea>
+        <button style="margin-top:8px">Save</button>
+      </form>
+    </div>
+    {% if shots %}
+    <h2>Screenshots</h2>
+    {% for s in shots %}<a href="/shot?path={{ s|urlencode }}" target="_blank"><img src="/shot?path={{ s|urlencode }}" style="width:100%; border:1px solid var(--line); border-radius:8px; margin-bottom:8px"></a>{% endfor %}
+    {% endif %}
+    {% if job.answers_json %}
+    <h2>Answers the bot gave</h2>
+    <div class="table"><table>
+      <tr><th>Question</th><th>Answer</th><th>From</th></tr>
+      {% for a in job.answers_json|fromjson %}<tr><td>{{ a.field }}</td><td>{{ a.value }}</td><td class="muted">{{ a.source }}</td></tr>{% endfor %}
+    </table></div>
+    {% endif %}
+    <h2>History</h2>
+    <div class="table"><table>
+      {% for e in events %}<tr><td class="num muted">{{ e.ts[5:16].replace("T"," ") }}</td><td>{{ e.kind }}: {{ e.detail }}</td></tr>{% endfor %}
+    </table></div>
+  </div>
+</div>
+{% endblock %}

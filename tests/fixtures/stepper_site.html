@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Junior Developer - Example Ltd</title></head>
+<body>
+<main>
+  <h1>Junior Developer</h1>
+  <p>London · £30,000 - £35,000 per annum</p>
+  <button id="apply">Apply now</button>
+  <div id="flow"></div>
+</main>
+<!-- a newsletter popup that appears on the second step -->
+<div id="promo" role="dialog" aria-modal="true" style="display:none; position:fixed; inset:0; background:#0006; z-index:999">
+  <div style="background:#fff; width:360px; margin:160px auto; padding:16px">Get job alerts by email!
+    <button>Subscribe</button> <button aria-label="Close">×</button></div>
+</div>
+<script>
+const flow = document.getElementById('flow');
+let step = 0;
+const steps = [
+  () => `<h2>Your CV</h2><label for="cv">Upload CV</label><input id="cv" type="file" required>
+         <button id="next">Continue</button>`,
+  () => `<h2>Questions</h2>
+         <fieldset><legend>Do you have the right to work in the UK?</legend>
+           <label><input type="radio" name="rtw" value="Yes" required>Yes</label><label><input type="radio" name="rtw" value="No">No</label></fieldset>
+         <label for="sal">Expected salary (£ per annum)</label><input id="sal" type="number" required>
+         <button id="next">Continue</button>`,
+  () => `<h2>Review</h2><button id="submit">Submit application</button>`,
+];
+function show() {
+  flow.innerHTML = steps[step]();
+  const n = document.getElementById('next');
+  if (n) n.onclick = () => {
+    if (step === 1) window.sent = {rtw: (document.querySelector('input[name=rtw]:checked') || {}).value, sal: document.getElementById('sal').value};
+    step++; show();
+    if (step === 1) document.getElementById('promo').style.display = 'block';
+  };
+  const s = document.getElementById('submit');
+  if (s) s.onclick = () => { flow.innerHTML = '<h2>Your application has been sent</h2>'; };
+}
+document.getElementById('apply').onclick = () => { document.getElementById('apply').remove(); show(); };
+document.querySelectorAll('#promo button').forEach(b => b.onclick = () => { window.promo = b.textContent; document.getElementById('promo').style.display = 'none'; });
+</script>
+</body>
+</html>

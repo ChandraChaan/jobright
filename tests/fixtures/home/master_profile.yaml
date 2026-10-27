@@ -1,0 +1,109 @@
+# A fictional person for tests. Every name, company and number here is made up.
+contact:
+  name: Asha Verma
+  location: Bengaluru, India
+  email: asha.verma@example.com
+  phone: "+91 9000000001"
+  links:
+    - {label: Portfolio, url: "https://example.com/asha"}
+    - {label: LinkedIn, url: "https://linkedin.com/in/asha-verma-example"}
+    - {label: GitHub, url: "https://github.com/asha-example"}
+
+titles:
+  - Principal Software Engineer
+  - Technical Architect
+
+years_experience: "8+"
+
+summary:
+  - id: s1
+    text: Principal Software Engineer with 8+ years of experience building mobile, web and cloud applications across FinTech, Healthcare and EdTech.
+  - id: s2
+    text: Expertise in Flutter, mobile architecture, Firebase, REST APIs, Node.js and cross-platform development.
+  - id: s3
+    text: Led engineering initiatives and delivered applications used by 100K+ users.
+
+highlights:
+  - id: h1
+    text: Architected and delivered the MVP of a health platform on AWS, from concept to production.
+  - id: h2
+    text: Led and mentored a team of 6 engineers, managing technical direction, sprint planning and code reviews.
+  - id: h3
+    text: Achieved a 99.5% crash-free user experience through monitoring and performance work.
+
+practices:
+  - id: pr1
+    text: Wrote unit, widget and integration tests for Flutter applications.
+  - id: pr2
+    text: Implemented state management with Riverpod, BLoC, Provider and GetX.
+
+skills:
+  Mobile: [Flutter, Dart, Android, iOS, Kotlin, Swift, Java, Flutter Method Channels, Cross-Platform Development, Mobile Development]
+  Architecture: [Mobile Architecture, System Design, Clean Architecture, MVVM, Riverpod, BLoC, Provider, GetX, State Management, API Design]
+  Cloud & Backend: [AWS, Serverless Architecture, Firebase, Cloud Firestore, Node.js, REST APIs]
+  Delivery: [CI/CD Automation, GitHub Actions, Git, Unit Testing, Widget Testing, Integration Testing, Push Notifications]
+  Leadership: [Technical Leadership, Team Mentoring, Code Reviews, Sprint Planning, Agile]
+
+roles:
+  - id: acme
+    title: Principal Software Engineer (Mobile)
+    company: Acme Learning Pvt Ltd
+    start: 2026-04
+    end: null
+    bullets:
+      - {id: ac1, text: "Leading development of a learning and rewards app serving 100K+ users across Android and iOS."}
+      - {id: ac2, text: "Implemented SSL pinning, secure networking practices and content protection."}
+      - {id: ac3, text: "Designed In-App Purchases, referral programs and daily rewards features."}
+    projects:
+      - {id: learnly, name: Learnly, summary: "Learning and rewards platform for 100K+ users."}
+
+  - id: globex
+    title: Technical Architect
+    company: Globex Health
+    start: 2025-09
+    end: 2026-04
+    bullets:
+      - {id: gx1, text: "Architected and delivered the MVP of a wearable-enabled health platform on AWS."}
+      - {id: gx2, text: "Led end-to-end application development using Flutter and Node.js."}
+    projects:
+      - {id: vitals, name: Vitals Platform, summary: "AWS-based digital health MVP with wearable integrations."}
+
+  - id: initech
+    title: Senior Software Engineer
+    company: Initech Systems
+    start: 2022-06
+    end: 2025-09
+    bullets:
+      - {id: it1, text: "Led architecture and development of Flutter Web, Android and iOS applications for enterprise clients."}
+      - {id: it2, text: "Delivered Bluetooth LE integrations using native Android (Java) and iOS (Swift) modules through Flutter Method Channels."}
+    projects:
+      - {id: beacon, name: Beacon, summary: "Bluetooth LE companion app for industrial sensors."}
+      - {id: dash, name: Dashboards, summary: "Enterprise dashboards built with Flutter."}
+
+  - id: umbrella
+    title: Mobile Application Developer Lead
+    company: Umbrella Retail Ltd
+    start: 2021-02
+    end: 2022-06
+    bullets:
+      - {id: um1, text: "Led a mobile team delivering Flutter apps across Android, iOS and Web."}
+      - {id: um2, text: "Integrated payment gateways with REST APIs and real-time data sync."}
+    projects:
+      - {id: shoply, name: Shoply, summary: "E-commerce app with payments."}
+
+  - id: hooli
+    title: Software Engineer
+    company: Hooli Tech Pvt. Ltd.
+    start: 2018-03
+    end: 2021-01
+    bullets:
+      - {id: ho1, text: "Developed full-stack web and mobile applications with PHP, MySQL and Firebase."}
+      - {id: ho2, text: "Delivered cross-platform Flutter applications for Android and iOS."}
+
+other_projects:
+  - {id: folio, name: Portfolio site, summary: "Flutter Web portfolio on Firebase with GitHub Actions CI/CD."}
+
+education:
+  - degree: Bachelor of Technology (B.Tech.), Computer Science
+    institution: Example Institute of Technology
+    location: Bengaluru

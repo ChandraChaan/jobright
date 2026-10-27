@@ -1,0 +1,35 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "plan" %}
+{% block step %}
+<h1>4 · Your career plan</h1>
+{% if not plan %}
+<p>Claude reads your profile like a candid career advisor: your level, your real strengths and how deep they go, what transfers, and which kinds of role you can realistically win in {{ country.name }}, from your core roles to sensible stretch roles.</p>
+<form method="post" action="/setup/plan/analyze"><button class="primary">Analyse my profile</button> <span class="help">about a minute, a few cents</span></form>
+{% else %}
+<div class="card">
+  <p style="margin-top:0"><b>{{ plan.level|capitalize }}</b> · {{ plan.years }} years · {{ plan.primary }}</p>
+  <p>{{ plan.summary }}</p>
+  <b>Strengths</b>
+  <div class="row" style="margin:6px 0 10px">{% for s in plan.strengths %}<span class="chip" title="{{ s.evidence }}">{{ s.skill }} · {{ s.depth }}</span>{% endfor %}</div>
+  {% if plan.transferable %}<b>Transfers to</b><div class="row" style="margin:6px 0 10px">{% for t in plan.transferable %}<span class="chip">{{ t }}</span>{% endfor %}</div>{% endif %}
+  {% if plan.growth_areas %}<b>Would open more doors</b><div class="row" style="margin-top:6px">{% for g in plan.growth_areas %}<span class="chip">{{ g }}</span>{% endfor %}</div>{% endif %}
+</div>
+<h2>Role tracks</h2>
+<p class="help">Each track becomes searches on your job sites. Stretch tracks get a deeper fit check before any resume is written. Untick what you do not want; edit titles and searches freely.</p>
+<form method="post" action="/setup/plan">
+{% for t in plan.tracks %}
+<div class="card" style="margin-bottom:10px">
+  <label><input type="checkbox" name="use::{{ t.name }}" checked> <b>{{ t.label }}</b></label>
+  {% if t.stretch %}<span class="chip">stretch · fit ≥ {{ t.min_fit }}</span>{% else %}<span class="chip">core · fit ≥ {{ t.min_fit }}</span>{% endif %}
+  <p class="help">{{ t.why }}</p>
+  <div class="form-grid">
+    <label>Title words</label><input type="text" name="titles::{{ t.name }}" value="{{ t.titles|join(', ') }}">
+    <label>Searches</label><input type="text" name="kw::{{ t.name }}" value="{{ t.search_keywords|join(', ') }}">
+  </div>
+</div>
+{% endfor %}
+<p><button class="primary">Use these tracks</button></p>
+</form>
+<form method="post" action="/setup/plan/analyze"><button>Analyse again</button></form>
+{% endif %}
+{% endblock %}

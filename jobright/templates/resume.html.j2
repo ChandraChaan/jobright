@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ contact.name }} — Resume</title>
+<style>
+  @page { size: A4; margin: 13mm 15mm 13mm 15mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.9pt;
+    line-height: 1.38;
+    color: #1c1f24;
+  }
+  header { border-bottom: 1.5px solid #1f3a5f; padding-bottom: 7px; margin-bottom: 9px; }
+  h1 { font-size: 20pt; margin: 0; letter-spacing: 0.2px; color: #10213a; font-weight: 700; }
+  .headline { font-size: 10.6pt; font-weight: 600; color: #1f3a5f; margin-top: 2px; }
+  .contact { margin-top: 3px; font-size: 9.1pt; color: #3a4049; }
+  .contact span { white-space: nowrap; }
+  .contact span + span::before { content: "·"; margin: 0 6px; color: #8a919c; }
+  .contact a { color: inherit; text-decoration: none; }
+  h2 {
+    font-size: 10.4pt; text-transform: uppercase; letter-spacing: 1px;
+    color: #1f3a5f; margin: 11px 0 5px; padding-bottom: 2px;
+    border-bottom: 0.75px solid #c9d1dc;
+  }
+  ul { margin: 0; padding-left: 14px; }
+  li { margin: 0 0 2.5px; }
+  .skills { display: grid; grid-template-columns: 150px 1fr; gap: 2px 10px; }
+  .skills dt { font-weight: 600; }
+  .skills dd { margin: 0; }
+  .role { margin-bottom: 8px; break-inside: avoid-page; }
+  .role-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .role-title { font-weight: 700; font-size: 10.2pt; }
+  .role-dates { font-size: 9.2pt; color: #3a4049; white-space: nowrap; }
+  .role-company { color: #3a4049; margin-bottom: 2px; }
+  .projects { margin-top: 2px; }
+  .projects-label { font-weight: 600; font-size: 9.4pt; }
+  .projects li { font-size: 9.5pt; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ contact.name }}</h1>
+  <div class="headline">{{ headline }}</div>
+  <div class="contact">
+    <span>{{ contact.location }}</span>
+    <span>{{ contact.phone }}</span>
+    <span><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></span>
+  </div>
+  <div class="contact">
+    {% for link in contact.links %}<span><a href="{{ link.url }}">{{ link.url | replace("https://", "") }}</a></span>{% endfor %}
+  </div>
+</header>
+
+<section>
+  <h2>Summary</h2>
+  <ul>{% for line in summary %}<li>{{ line }}</li>{% endfor %}</ul>
+</section>
+
+<section>
+  <h2>Skills</h2>
+  <dl class="skills">
+    {% for group in skills %}<dt>{{ group["name"] }}</dt><dd>{{ group["items"] | join(", ") }}</dd>{% endfor %}
+  </dl>
+</section>
+
+<section>
+  <h2>Experience</h2>
+  {% for role in roles %}
+  <div class="role">
+    <div class="role-head">
+      <span class="role-title">{{ role.title }}</span>
+      <span class="role-dates">{{ role.dates }}</span>
+    </div>
+    <div class="role-company">{{ role.company }}{% if role.engagement %} ({{ role.engagement }}){% endif %}</div>
+    <ul>{% for line in role.bullets %}<li>{{ line }}</li>{% endfor %}</ul>
+    {% if role.projects %}
+    <div class="projects">
+      <span class="projects-label">Key projects</span>
+      <ul>{% for p in role.projects %}<li><strong>{{ p.name }}</strong> — {{ p.summary }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+{% if highlights %}
+<section>
+  <h2>Career Highlights</h2>
+  <ul>{% for line in highlights %}<li>{{ line }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if other_projects %}
+<section>
+  <h2>Other Projects</h2>
+  <ul>{% for p in other_projects %}<li><strong>{{ p.name }}</strong> — {{ p.summary }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section>
+  <h2>Education</h2>
+  {% for e in education %}
+  <div><strong>{{ e.degree }}</strong> — {{ e.institution }}{% if e.grade %} · {{ e.grade }}{% endif %}{% if e.end %} · {{ e.end[:4] }}{% endif %}</div>
+  {% if e.details %}<ul>{% for d in e.details %}<li>{{ d.text }}</li>{% endfor %}</ul>{% endif %}
+  {% endfor %}
+</section>
+</body>
+</html>

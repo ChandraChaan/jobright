@@ -1,0 +1,24 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "resume" %}
+{% block step %}
+<h1>Review your profile</h1>
+<div class="tiles">
+  <div class="card tile"><b>{{ profile.contact.name }}</b>{{ profile.titles[0] if profile.titles else "" }}</div>
+  <div class="card tile"><b>{{ profile.roles|length }}</b>roles</div>
+  <div class="card tile"><b>{{ profile.facts()|length }}</b>facts</div>
+  <div class="card tile"><b>{{ profile.skill_names()|length }}</b>skills</div>
+</div>
+{% if flagged %}
+<h2>Please check these {{ flagged|length }} line(s)</h2>
+<div class="card">
+  <p class="help" style="margin-top:0">Their wording could not be found in your resume. Fix or delete them below if they are not exactly true.</p>
+  <ul>{% for f in flagged %}<li><code>{{ f.id }}</code> {{ f.text }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+<h2>Your profile</h2>
+<p class="help">This is the fact base. Correct anything wrong, add real achievements and numbers you remember, and remove anything you would not defend in an interview.</p>
+<form method="post" action="/setup/profile">
+  <textarea class="code" name="raw">{{ raw }}</textarea>
+  <p><button class="primary">Save and continue</button></p>
+</form>
+{% endblock %}

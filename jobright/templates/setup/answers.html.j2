@@ -1,0 +1,50 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "answers" %}
+{% block step %}
+<h1>5 · Questions every form asks</h1>
+<p>Application forms keep asking the same things. Answer them once here. Anything you leave empty is never guessed: the bot asks you the first time a form needs it, then remembers.</p>
+<form method="post" action="/setup/answers">
+<div class="card">
+  <div class="form-grid">
+    {% for f in fields %}
+    {% set v = bank.get(f.key) %}
+    {% if v is none and f.key == "current_salary" %}{% set v = bank.get("current_ctc_lpa") %}{% endif %}
+    {% if v is none and f.key == "expected_salary" %}{% set v = bank.get("expected_ctc_lpa") %}{% endif %}
+    {% if v is none and f.key == "work_authorization" %}{% set v = bank.get("work_authorization_india") %}{% endif %}
+    {% if v == "FILL_ME" %}{% set v = none %}{% endif %}
+    <label>{{ f.label }}{% if f.salary %} ({{ country.symbol }}{{ " in lakhs per annum" if country.salary_style == "lpa" else ", per year" }}){% endif %}
+      {% if f.help %}<div class="help">{{ f.help }}</div>{% endif %}
+      {% if f.help_country and country[f.help_country] %}<div class="help">e.g. {{ country[f.help_country] }}</div>{% endif %}</label>
+    {% if f.kind == "yesno" %}
+      <select name="{{ f.key }}"><option value=""></option>
+        <option value="yes" {{ "selected" if v is sameas true or v == "yes" }}>Yes</option>
+        <option value="no" {{ "selected" if v is sameas false or v == "no" }}>No</option></select>
+    {% elif f.kind == "select" %}
+      <select name="{{ f.key }}"><option value=""></option>{% for o in f.options %}<option {{ "selected" if v == o }}>{{ o }}</option>{% endfor %}</select>
+    {% else %}
+      <input type="{{ 'number' if f.kind == 'number' else 'text' }}" {% if f.step %}step="{{ f.step }}"{% endif %} name="{{ f.key }}" value="{{ v if v is not none else '' }}">
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+<h2>Years per skill</h2>
+<p class="help">Forms ask "How many years of experience do you have with X?". Only skills listed here get a number; others are asked once.</p>
+<div class="card">
+  <div class="form-grid">
+    {% set i = namespace(n=0) %}
+    {% for name, years in skills.items() %}
+      <input type="text" name="skillname::{{ i.n }}" value="{{ name }}"><input type="number" step="0.5" name="skillyears::{{ i.n }}" value="{{ years if years not in (none, '', 'FILL_ME') else '' }}" placeholder="years">
+      {% set i.n = i.n + 1 %}
+    {% endfor %}
+    {% for _ in range(4) %}
+      <input type="text" name="skillname::{{ i.n }}" placeholder="skill"><input type="number" step="0.5" name="skillyears::{{ i.n }}" placeholder="years">
+      {% set i.n = i.n + 1 %}
+    {% endfor %}
+  </div>
+</div>
+<div class="card" style="margin-top:14px">
+  <b>Salary rule.</b> When a job states its budget: if the top of the budget is at or above your expected salary, the bot asks for your expected salary; if it is between your current and expected, it asks for the budget's top; if it is below your current salary, the job comes to you for review instead.
+</div>
+<p><button class="primary">Save and continue</button></p>
+</form>
+{% endblock %}

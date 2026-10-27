@@ -1,0 +1,31 @@
+SAMPLE JOB DESCRIPTION (fictional, for testing the pipeline)
+
+Company: Example Fintech Pvt Ltd
+Role: Staff Engineer – Mobile (Flutter)
+Location: Bangalore (Hybrid)
+Experience: 7-10 years
+
+About the role
+We are a fast-growing digital lending and payments company serving millions of users across India. We are looking for a Staff Engineer to own the architecture of our Flutter apps on Android and iOS and to raise the engineering bar of a mobile team of 10+ engineers.
+
+What you will do
+- Own the mobile architecture for our consumer lending and payments apps built in Flutter.
+- Design modular, testable app architecture using Clean Architecture and BLoC.
+- Lead technical design reviews, code reviews and mentor senior and mid-level engineers.
+- Drive app security: SSL pinning, secure storage, root/jailbreak detection and secure payment flows.
+- Integrate payment gateways and UPI flows; work closely with backend teams on REST and GraphQL APIs.
+- Improve app performance, startup time and crash-free rate; own release management and CI/CD for mobile.
+- Partner with product, design and QA to plan and ship features at high velocity.
+
+What we are looking for
+- 7+ years of software engineering experience, 4+ years with Flutter in production apps.
+- Deep knowledge of Dart, state management (BLoC, Provider, GetX) and Flutter internals.
+- Experience with native Android (Kotlin/Java) and iOS (Swift) platform channels.
+- Strong understanding of mobile security and fintech compliance.
+- Experience with Firebase (Crashlytics, Remote Config, FCM) and analytics.
+- Track record of leading teams and making architecture decisions at scale.
+
+Nice to have
+- Experience with GraphQL.
+- Experience with Kotlin Multiplatform or React Native.
+- Experience in lending or payments domain.

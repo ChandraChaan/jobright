@@ -1,0 +1,17 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "logins" %}
+{% block step %}
+<h1>6 · Sign in to your job sites</h1>
+<p>The bot uses its own browser window, separate from your normal browser. Press a button, sign in yourself in the window that opens (codes and 2-step checks are fine), and wait for it to say you are signed in. jobright never sees or stores your passwords.</p>
+<div class="card">
+  {% for site in sites %}
+  <form method="post" action="/setup/logins/{{ site }}" class="row" style="margin-bottom:8px">
+    <button>Sign in to {{ {"linkedin": "LinkedIn", "naukri": "Naukri", "reed": "Reed", "indeed": "Indeed"}[site] }}</button>
+  </form>
+  {% else %}
+  <p>No sign-in needed for the sites you chose.</p>
+  {% endfor %}
+  <p class="help">Check any time with <code>jobright session</code>. Company career sites need no account.</p>
+</div>
+<form method="post" action="/setup/logins-done"><p><button class="primary">I'm signed in, continue</button></p></form>
+{% endblock %}

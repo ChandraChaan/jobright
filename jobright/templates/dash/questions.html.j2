@@ -1,0 +1,28 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<h1>Questions from application forms</h1>
+<p class="muted">The bot only answers questions it can back with your answer bank or profile. Answer these once; every future form that asks the same question gets your answer. Fixed details (CTC, notice period, years per skill) are best set in <code>data/answers.yaml</code>.</p>
+{% if pending %}
+<form method="post" action="/questions">
+<div class="table"><table>
+  <tr><th>Question</th><th>Seen</th><th style="width:40%">Your answer</th></tr>
+  {% for p in pending %}
+  <tr>
+    <td>{{ p.question }}{% if p.reason %}<div class="muted" style="font-size:12.5px">{{ p.reason }}{% if p.jobs %} · {{ p.jobs|length }} job(s) waiting{% endif %}</div>{% endif %}{% if p.options %}<div class="row" style="margin-top:4px">{% for o in p.options %}<span class="chip">{{ o }}</span>{% endfor %}</div>{% endif %}</td>
+    <td class="num muted">{{ p.count }}×</td>
+    <td>{% if p.options %}
+      <select name="q::{{ p.question }}"><option value=""></option>{% for o in p.options %}<option>{{ o }}</option>{% endfor %}</select>
+      {% else %}<input type="text" name="q::{{ p.question }}">{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+<p><button class="primary">Save answers</button></p>
+</form>
+{% else %}
+<p>No open questions.</p>
+{% endif %}
+{% if saved %}
+<h2>Saved answers</h2>
+<div class="table"><table>{% for q, a in saved.items() %}<tr><td>{{ q }}</td><td>{{ a }}</td></tr>{% endfor %}</table></div>
+{% endif %}
+{% endblock %}

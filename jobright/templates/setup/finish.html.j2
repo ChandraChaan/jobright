@@ -1,0 +1,26 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "finish" %}
+{% block step %}
+<h1>7 · Limits and go</h1>
+<form method="post" action="/setup/finish">
+<div class="card">
+  <div class="form-grid">
+    <label>Search every (hours)</label><input type="number" name="every_hours" value="{{ s.schedule.every_hours }}" min="1" step="1">
+    <label>Monthly Claude budget (USD)<div class="help">Paid steps pause when reached. Set the same cap in the Anthropic console.</div></label>
+    <input type="number" name="monthly_budget_usd" value="{{ s.limits.monthly_budget_usd }}" min="5">
+    <label>Run automatically on a schedule</label><label><input type="checkbox" name="schedule" checked> yes (while you are logged in to this computer)</label>
+    <label>Start the first search now</label><label><input type="checkbox" name="run_now" checked> yes</label>
+  </div>
+</div>
+<h2>Submitting</h2>
+<div class="card">
+  <p style="margin-top:0"><b>Review mode is on</b>: the bot prepares each application (resume, answers) and waits for your <b>Approve</b> in the dashboard. Tick a site to let it submit there without asking. Recommended only after you have watched a few go through.</p>
+  <div class="pill-list">
+    {% for site in (s.profile.sites or []) %}
+    <label><input type="checkbox" name="auto::{{ site }}" {{ "checked" if s.apply.auto_submit.get(site) }}> auto-submit on {{ site }}</label>
+    {% endfor %}
+  </div>
+</div>
+<p><button class="primary">Finish setup</button></p>
+</form>
+{% endblock %}

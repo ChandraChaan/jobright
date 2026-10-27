@@ -1,0 +1,38 @@
+{% extends "setup/layout.html.j2" %}
+{% set step = "country" %}
+{% block step %}
+<h1>3 · Where are you looking?</h1>
+<form method="post" action="/setup/country">
+<div class="card">
+  <div class="form-grid">
+    <label>Country</label>
+    <select name="country" onchange="this.form.querySelectorAll('[data-c]').forEach(e => e.style.display = e.dataset.c === this.value ? '' : 'none')">
+      {% for code, c in countries.items() %}<option value="{{ code }}" {{ "selected" if prof.country == code }}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+</div>
+{% for code, c in countries.items() %}
+<div data-c="{{ code }}" style="{{ '' if (prof.country or 'IN') == code else 'display:none' }}">
+  <h2>Cities in {{ c.name }}</h2>
+  <div class="card pill-list">
+    {% for city in c.cities %}<label><input type="checkbox" name="cities" value="{{ city }}" {{ "checked" if city in (prof.cities or []) }}> {{ city }}</label>{% endfor %}
+    <div class="form-grid" style="margin-top:8px"><label>Other cities</label><input type="text" name="other_cities" placeholder="comma separated"></div>
+  </div>
+  <h2>Job sites</h2>
+  <div class="card pill-list">
+    {% for site in c.sites %}
+    <label><input type="checkbox" name="sites" value="{{ site }}" {{ "checked" if site in (prof.sites or c.sites) }}>
+      {{ {"linkedin": "LinkedIn", "naukri": "Naukri", "reed": "Reed", "indeed": "Indeed (beta)", "ats": "Company career sites (Greenhouse, Lever, Ashby)"}.get(site, site) }}</label>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+<div class="card" style="margin-top:14px">
+  <div class="form-grid">
+    <label>Remote jobs in your country count?</label><label><input type="checkbox" name="remote_ok" {{ "checked" if prof.remote_ok is not defined or prof.remote_ok }}> yes</label>
+    <label>Companies to never apply to<div class="help">e.g. your current employer</div></label><input type="text" name="exclude_companies" value="{{ excluded }}" placeholder="comma separated">
+  </div>
+</div>
+<p><button class="primary">Save and continue</button></p>
+</form>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<div class="row" style="justify-content:space-between">
+  <h1>{{ {"ready": "Ready for review", "needs_you": "Need you", "needs_you,salary_review": "Need you"}.get(status, "Jobs") }}{% if status and status not in ("ready","needs_you","needs_you,salary_review") %} — {{ status }}{% endif %} <span class="muted">({{ jobs|length }})</span></h1>
+  {% if status == "ready" and jobs %}
+  <form class="inline" method="post" action="/approve-ready"><input type="hidden" name="now" value="1"><button class="primary">Approve all and apply</button></form>
+  {% endif %}
+</div>
+<div class="row" style="margin-bottom:12px">
+  {% for s in ["ready","needs_you","salary_review","unverified","applied","screened","skipped","unavailable","duplicate","filtered","failed"] %}<a class="btn" href="/jobs?status={{ s }}">{{ s }}</a>{% endfor %}
+  <a class="btn" href="/jobs">all</a>
+</div>
+<div class="table"><table>
+  <tr><th>Company</th><th>Role</th><th>Track</th><th>Location</th><th>Source</th><th>Prio</th><th>Skills</th><th>Fit</th><th>Status</th><th>Why</th></tr>
+  {% for j in jobs %}
+  <tr>
+    <td>{{ j.company }}</td>
+    <td><a href="/jobs/{{ j.id }}">{{ j.title }}</a></td>
+    <td><span class="chip">{{ j.track or "" }}</span></td>
+    <td class="muted">{{ j.location or "" }}</td>
+    <td><span class="chip">{{ j.source }}</span></td>
+    <td class="num"><b>{{ j.priority if j.priority is not none else "" }}</b></td>
+    <td class="num">{{ j.skill_match ~ "%" if j.skill_match is not none else "" }}</td>
+    <td class="num">{{ j.fit_score if j.fit_score is not none else "" }}</td>
+    <td class="st-{{ j.status }}">{{ j.status }}</td>
+    <td class="muted" style="max-width:340px">{{ (j.reason or "")[:160] }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10" class="muted">No jobs here.</td></tr>
+  {% endfor %}
+</table></div>
+{% endblock %}

@@ -1,0 +1,62 @@
+# What changes from country to country. Add a country by copying a block.
+#
+# salary_style: lpa    = salaries quoted in lakhs per annum (India)
+#               annual = full annual amount in the currency (most countries)
+# national_sites: sites that only list jobs in this country, so "Remote"
+#                 there means remote within it
+# linkedin_geo: LinkedIn location ids (LinkedIn's search ignores place names)
+
+IN:
+  name: India
+  currency: INR
+  symbol: "₹"
+  salary_style: lpa
+  sites: [linkedin, naukri, ats]
+  national_sites: [naukri]
+  cities: [Bengaluru, Hyderabad, Pune, Mumbai, Chennai, Delhi, Gurugram, Noida, Kolkata, Kochi, Ahmedabad]
+  aliases: {Bengaluru: [Bangalore], Gurugram: [Gurgaon], Delhi: [New Delhi, NCR]}
+  linkedin_geo: {country: 102713980, Bengaluru: 105214831, Hyderabad: 105556991, Pune: 114806696,
+                 Mumbai: 106164952, Chennai: 106888327}
+  work_authorization_example: Indian citizen
+  ats_boards:
+    greenhouse: [razorpaysoftwareprivatelimited, groww, slice, inmobi, druva]
+    lever: [cred, meesho, zeta, fi, mindtickle]
+
+GB:
+  name: United Kingdom
+  currency: GBP
+  symbol: "£"
+  salary_style: annual
+  sites: [linkedin, reed, indeed, ats]
+  national_sites: [reed]
+  indeed_domain: uk.indeed.com
+  cities: [London, Manchester, Birmingham, Edinburgh, Glasgow, Bristol, Leeds, Cambridge, Oxford, Cardiff, Belfast]
+  aliases: {London: [Greater London, City of London]}
+  linkedin_geo: {country: 101165590, London: 90009496}
+  work_authorization_example: "British citizen / Settled status / Graduate visa (needs sponsorship later)"
+  ats_boards: {}
+
+US:
+  name: United States
+  currency: USD
+  symbol: "$"
+  salary_style: annual
+  sites: [linkedin, indeed, ats]
+  national_sites: []
+  indeed_domain: www.indeed.com
+  cities: [New York, San Francisco, Seattle, Austin, Boston, Chicago, Los Angeles]
+  aliases: {New York: [NYC, New York City], San Francisco: [SF, Bay Area]}
+  linkedin_geo: {country: 103644278}
+  work_authorization_example: "US citizen / Green card / H-1B (needs sponsorship)"
+  ats_boards: {}
+
+OTHER:
+  name: Other
+  currency: USD
+  symbol: "$"
+  salary_style: annual
+  sites: [linkedin, ats]
+  national_sites: []
+  cities: []
+  linkedin_geo: {country: 92000000}   # worldwide
+  ats_boards: {}

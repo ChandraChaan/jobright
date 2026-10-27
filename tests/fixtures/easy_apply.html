@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flutter Developer | MockCo | LinkedIn</title>
+<style>
+  body { font-family: sans-serif; margin: 0; min-height: 1200px; }
+  dialog { width: 600px; }
+  #cookie { position: fixed; bottom: 0; left: 0; right: 0; background: #eee; padding: 10px; z-index: 1000; }
+  #settings { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 2000; display: none; }
+  #settings > div { background: white; width: 400px; margin: 200px auto; padding: 20px; }
+  .artdeco-inline-feedback--error { color: red; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Flutter Developer</h1>
+  <p id="status-line">Bengaluru, Karnataka, India · 2 hours ago · 40 applicants</p>
+  <button id="easy">Easy Apply</button>
+  <div id="app-status"></div>
+  <section><h2>About the job</h2><p>Build Flutter apps.</p></section>
+</main>
+
+<!-- a cookie banner, as on a first visit -->
+<div id="cookie">We use cookies. <button>Accept all</button> <button>Reject all</button></div>
+
+<!-- a "settings" popup that closes the Easy Apply dialog mid-application -->
+<div id="settings" role="dialog" aria-modal="true">
+  <div><h3>Job search settings</h3><p>Let recruiters know you're open to work?</p>
+    <button>Update settings</button> <button>Not now</button></div>
+</div>
+
+<dialog id="ea">
+  <h2>Apply to MockCo</h2>
+  <div id="progress"></div>
+  <div id="body"></div>
+  <button aria-label="Dismiss" id="x">×</button>
+  <button id="primary"></button>
+</dialog>
+
+<dialog id="sent">
+  <h2>Your application was sent to MockCo!</h2>
+  <button>Not now</button> <button>Update profile</button>
+</dialog>
+
+<script>
+const params = new URLSearchParams(location.search);
+const interrupt = params.get('interrupt') === '1';
+let step = 1, interrupted = false;
+const ea = document.getElementById('ea'), body = document.getElementById('body'), primary = document.getElementById('primary');
+const steps = {
+  1: () => `
+    <h3>Contact info</h3>
+    <label for="email">Email address*</label>
+    <select id="email" required><option>asha.linkedin@example.com</option></select>
+    <label for="cc">Phone country code*</label>
+    <select id="cc" required><option>India (+91)</option></select>
+    <label for="phone">Mobile phone number*</label>
+    <input id="phone" type="text" required value="9000000001">
+    <label for="cv">Upload resume</label><input id="cv" type="file">`,
+  2: () => `
+    <h3>Additional Questions</h3>
+    <div><label for="q1">How many years of expereince do you have in Mobile App Developement?*</label>
+      <input id="q1" type="text" required value="9000000001"><div class="err"></div></div>
+    <div><label for="q2">Total years of experience*</label>
+      <input id="q2" type="text" required><div class="err"></div></div>
+    <div><label for="q3">What is your Expected CTC?*</label>
+      <input id="q3" type="text" required><div class="err"></div></div>
+    <fieldset><legend>Do you have experience in IOS, Android, Flutter?*</legend>
+      <label><input type="radio" name="q4" value="Yes" required>Yes</label>
+      <label><input type="radio" name="q4" value="No">No</label></fieldset>
+    <fieldset><legend>Do you have valid passport and willingness to travel internationally?*</legend>
+      <label><input type="radio" name="q5" value="Yes" required>Yes</label>
+      <label><input type="radio" name="q5" value="No">No</label></fieldset>
+    <label><input type="checkbox" id="follow" checked> Follow MockCo to stay up to date with their page</label>`,
+  3: () => `<h3>Review your application</h3><p>Please review.</p>`,
+};
+const labels = {1: 'Next', 2: 'Review', 3: 'Submit application'};
+
+function render() {
+  document.getElementById('progress').textContent = `${step}/3 pages`;
+  body.innerHTML = steps[step]();
+  primary.textContent = labels[step];
+}
+function whole(v) { return /^\d+$/.test(v) && +v >= 0 && +v <= 99; }
+function errorFor(id, msg) {
+  const box = document.getElementById(id).parentElement.querySelector('.err');
+  box.innerHTML = msg ? `<div class="artdeco-inline-feedback--error" role="alert">${msg}</div>` : '';
+  document.getElementById(id).setAttribute('aria-invalid', msg ? 'true' : 'false');
+}
+document.getElementById('easy').onclick = () => { if (!ea.open) { ea.showModal(); render(); } };
+document.getElementById('x').onclick = () => ea.close();
+primary.onclick = () => {
+  if (step === 1) {
+    if (interrupt && !interrupted) {           // the interruption: dialog closes, popup appears
+      interrupted = true; step = 2; ea.close();
+      document.getElementById('settings').style.display = 'block';
+      return;
+    }
+    step = 2; render(); return;
+  }
+  if (step === 2) {
+    let ok = true;
+    for (const id of ['q1', 'q2']) {
+      const v = document.getElementById(id).value.trim();
+      const bad = !whole(v);
+      errorFor(id, bad ? 'Enter a whole number between 0 and 99' : '');
+      ok = ok && !bad;
+    }
+    const ctc = document.getElementById('q3').value.trim();
+    errorFor('q3', /^\d+(\.\d+)?$/.test(ctc) ? '' : 'Enter a decimal number larger than 0.0');
+    ok = ok && /^\d+(\.\d+)?$/.test(ctc);
+    ok = ok && document.querySelector('input[name=q4]:checked') && document.querySelector('input[name=q5]:checked');
+    window.submittedAnswers = {q1: document.getElementById('q1').value, q2: document.getElementById('q2').value, q3: ctc,
+      q4: (document.querySelector('input[name=q4]:checked') || {}).value, q5: (document.querySelector('input[name=q5]:checked') || {}).value,
+      follow: document.getElementById('follow').checked};
+    if (ok) { step = 3; render(); }
+    return;
+  }
+  if (step === 3) {
+    ea.close();
+    document.getElementById('app-status').innerHTML = '<h2>Application status</h2><p>Application submitted</p>';
+    document.getElementById('sent').showModal();
+  }
+};
+document.querySelectorAll('#settings button').forEach(b => b.onclick = () => document.getElementById('settings').style.display = 'none');
+document.querySelectorAll('#cookie button').forEach(b => b.onclick = () => { window.cookieChoice = b.textContent; document.getElementById('cookie').remove(); });
+document.querySelectorAll('#sent button').forEach(b => b.onclick = () => document.getElementById('sent').close());
+</script>
+</body>
+</html>
