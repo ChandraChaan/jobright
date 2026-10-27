@@ -1,24 +1,44 @@
 {% extends "setup/layout.html.j2" %}
 {% set step = "key" %}
 {% block step %}
-<h1>1 · Your Claude API key</h1>
-<p>jobright uses Claude to read job descriptions, write and fact-check your resumes, and understand application forms. You use your own key, so your data goes only to Anthropic and you control the spend.</p>
+<h1>1 · Pick the AI engine</h1>
+<p>jobright works with no API key and no cost. A smarter engine reads job descriptions and forms better; none of them ever invents experience. Now using: <b>{{ now }}</b>.</p>
+<form method="post" action="/setup/key">
 <div class="card">
-  <ol style="margin-top:0">
-    <li>Open <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com → API keys</a> and create a key.</li>
-    <li>Add a little credit and set a <b>monthly spend limit</b> there (about $20–60 covers a busy month).</li>
-    <li>Paste the key below. It is saved only in your jobright folder.</li>
-  </ol>
-  <form method="post" action="/setup/key">
-    <div class="form-grid">
-      <label>Anthropic API key {% if status.key %}<span class="st-applied">(saved)</span>{% endif %}</label>
-      <input type="password" name="anthropic_key" placeholder="sk-ant-…" autocomplete="off">
-      {% if "reed" in (country.sites or []) %}
-      <label>Reed API key (UK) {% if has_reed %}<span class="st-applied">(saved)</span>{% endif %}<div class="help">Free at <a href="https://www.reed.co.uk/developers/jobseeker" target="_blank">reed.co.uk/developers</a></div></label>
-      <input type="password" name="reed_key" placeholder="optional" autocomplete="off">
-      {% endif %}
-    </div>
-    <p><button class="primary">Save</button></p>
-  </form>
+  <label class="pill-list" style="display:block; margin-bottom:12px">
+    <input type="radio" name="engine_choice" value="free" {{ 'checked' if choice == 'free' }}>
+    <b>Free</b>, $0, no key. Rules score each job against your skills, years and level, and build your resume word for word from your own lines, ordered for the job.
+  </label>
+  <label class="pill-list" style="display:block; margin-bottom:12px">
+    <input type="radio" name="engine_choice" value="local" {{ 'checked' if choice == 'local' }}>
+    <b>Local AI</b>, $0, private. A model runs on this computer through <a href="https://ollama.com" target="_blank">Ollama</a> and reads job descriptions and unusual form questions.
+    {% if ollama %}<span class="st-applied">Ollama is running ({{ ollama|length }} model{{ 's' if ollama|length != 1 }}).</span>
+    {% else %}<span class="help">Ollama is not running. Install it, then run <code>ollama pull {{ local_model }}</code> (about 5 GB, 8 GB+ RAM).</span>{% endif %}
+  </label>
+  <label class="pill-list" style="display:block; margin-bottom:12px">
+    <input type="radio" name="engine_choice" value="claude" {{ 'checked' if choice == 'claude' }}>
+    <b>Claude</b>, best quality. Rewrites every resume for the job and fact-checks it line by line. You pay Anthropic directly, about $0.25 per tailored resume, with a monthly cap you choose.
+  </label>
+  <label class="pill-list" style="display:block">
+    <input type="radio" name="engine_choice" value="auto" {{ 'checked' if choice == 'auto' }}>
+    <b>Automatic</b>: Claude if a key is saved, else Local AI if Ollama is running, else Free.
+  </label>
 </div>
+<div class="card">
+  <div class="form-grid">
+    {% if ollama %}
+    <label>Local model<div class="help">Installed in Ollama</div></label>
+    <select name="local_model">{% for m in ollama %}<option {{ 'selected' if m == local_model }}>{{ m }}</option>{% endfor %}</select>
+    {% endif %}
+    <label>Anthropic API key (optional) {% if has_key %}<span class="st-applied">(saved)</span>{% endif %}
+      <div class="help">Create one at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> and set a monthly spend limit there.</div></label>
+    <input type="password" name="anthropic_key" placeholder="sk-ant-…" autocomplete="off">
+    {% if "reed" in (country.sites or []) %}
+    <label>Reed API key (UK) {% if has_reed %}<span class="st-applied">(saved)</span>{% endif %}<div class="help">Free at <a href="https://www.reed.co.uk/developers/jobseeker" target="_blank">reed.co.uk/developers</a></div></label>
+    <input type="password" name="reed_key" placeholder="optional" autocomplete="off">
+    {% endif %}
+  </div>
+  <p><button class="primary">Save</button></p>
+</div>
+</form>
 {% endblock %}

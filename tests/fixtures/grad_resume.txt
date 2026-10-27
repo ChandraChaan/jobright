@@ -1,0 +1,28 @@
+SAM PATEL
+London, United Kingdom | sam.patel@example.com | +44 7700 900123 | github.com/sam-example | linkedin.com/in/sam-patel-example
+
+PROFILE
+Computer Science graduate (First Class Honours) who enjoys building full-stack web apps. Comfortable with Python, JavaScript/TypeScript, React and SQL, and keen to grow as a software engineer.
+
+EDUCATION
+BSc Computer Science, University of Leeds, 2022 - 2025. First Class Honours.
+Dissertation: A recommender system for course modules using collaborative filtering (Python, scikit-learn).
+Relevant modules: Data Structures and Algorithms, Databases, Software Engineering, Machine Learning, Cloud Computing.
+
+EXPERIENCE
+Software Engineering Intern, Example Bank, London (June 2024 - September 2024)
+- Built an internal dashboard in React and TypeScript used by the payments operations team.
+- Wrote Python scripts to automate weekly reconciliation reports, saving the team about 3 hours a week.
+- Added unit tests with pytest and Jest; took part in code reviews and daily stand-ups.
+
+Teaching Assistant, University of Leeds (October 2024 - May 2025)
+- Ran weekly lab sessions for 30 first-year students on Python programming.
+
+PROJECTS
+StudySync - a React and Node.js web app for planning group study sessions, deployed on AWS with a PostgreSQL database.
+Hackathon winner, LeedsHack 2024 - built a food-waste tracking app in 24 hours with Flask.
+
+SKILLS
+Languages: Python, JavaScript, TypeScript, SQL, Java
+Frameworks: React, Node.js, Express, Flask, Django
+Tools: Git, Docker, AWS (EC2, S3), PostgreSQL, pytest, Jest

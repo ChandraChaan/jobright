@@ -1,0 +1,33 @@
+name: Bug report
+description: Something went wrong on a site, a form, or the app
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please remove personal details (name, phone, salary, employer) from logs and screenshots before posting.
+  - type: dropdown
+    id: site
+    attributes:
+      label: Where did it happen?
+      options: [LinkedIn, Naukri, Reed, Indeed, Company career site (Greenhouse/Lever/Ashby), Setup wizard, Dashboard, Other]
+    validations: {required: true}
+  - type: dropdown
+    id: engine
+    attributes:
+      label: AI engine
+      options: [Free, Local AI (Ollama), Claude]
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: {required: true}
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `jobright doctor`
+      render: text
+  - type: input
+    id: os
+    attributes:
+      label: OS and Python version
+      placeholder: macOS 15, Python 3.12

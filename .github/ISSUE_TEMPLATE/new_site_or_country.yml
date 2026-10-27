@@ -1,0 +1,21 @@
+name: New job site or country
+description: Ask for (or offer to build) support for a site or country
+labels: [enhancement, sites]
+body:
+  - type: input
+    id: what
+    attributes:
+      label: Site or country
+      placeholder: e.g. StepStone (Germany), Seek (Australia)
+    validations: {required: true}
+  - type: textarea
+    id: details
+    attributes:
+      label: How do people apply there? Is there a public API?
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I can test it with my own account
+        - label: I'd like to build it (see docs/adding-a-site.md)

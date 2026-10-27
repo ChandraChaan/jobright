@@ -51,6 +51,7 @@ limits:
   monthly_budget_usd: 60      # paid steps stop when this month's Claude spend reaches it
   max_attempts: 3
   max_per_company_30d: 3
+  rejection_cooldown_days: 90 # don't re-apply to a company this soon after a rejection (0 = off)
 
 apply:
   # false = review mode: everything is prepared, nothing is sent until you
@@ -63,6 +64,16 @@ apply:
     ats: false
   browser_headless: false
   accept_application_consent: false
+
+# Which brain reads jobs and forms. auto = Claude when an API key is set,
+# else a local model when Ollama is running, else free rules. All three keep
+# to your own facts; only Claude rewrites resume lines (local can, with
+# local_tailoring: true, still checked by the same rules).
+ai:
+  engine: auto                 # auto | free | local | claude
+  local_model: qwen2.5:7b      # any Ollama model; `ollama pull qwen2.5:7b` (about 5 GB)
+  local_tailoring: false
+  ollama_url: http://127.0.0.1:11434
 
 models:
   analyze: claude-haiku-5-5

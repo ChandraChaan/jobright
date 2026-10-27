@@ -211,6 +211,30 @@ def applications_to_company(company: str, days: int = 30) -> int:
     return sum(1 for r in rows if norm_company(r[0]) == nc)
 
 
+def rejected_by(company: str, days: int = 90) -> dict | None:
+    """A recent rejection from this company, if any (to avoid re-applying too soon)."""
+    since = (date.today() - timedelta(days=days)).isoformat()
+    nc = norm_company(company)
+    with connect() as conn:
+        rows = conn.execute("SELECT * FROM jobs WHERE status = 'rejected' AND substr(updated_at,1,10) >= ?",
+                            (since,)).fetchall()
+    return next((dict(r) for r in rows if norm_company(r["company"]) == nc), None)
+
+
+def track_outcomes() -> dict[str, dict[str, int]]:
+    """Per role track: how many applications, and how many reached each result."""
+    with connect() as conn:
+        rows = conn.execute("SELECT COALESCE(track, 'general') AS track, status, COUNT(*) FROM jobs "
+                            "WHERE applied_at IS NOT NULL GROUP BY 1, 2").fetchall()
+    out: dict[str, dict[str, int]] = {}
+    for track, status, n in rows:
+        t = out.setdefault(track, {"applied": 0, "interview": 0, "offer": 0, "rejected": 0})
+        t["applied"] += n
+        if status in t:
+            t[status] += n
+    return out
+
+
 # --- jobs ----------------------------------------------------------------------
 
 def add_job(*, source: str, external_id: str, url: str, title: str, company: str,

@@ -1,12 +1,12 @@
 [project]
 name = "jobright"
-version = "0.3.0"
-description = "An honest AI job-search agent: finds jobs that fit you, writes fact-checked tailored resumes, applies with you in control."
+version = "0.4.0"
+description = "A free, honest job-search agent: finds jobs that fit you, tailors your resume from real facts, applies with you in control. No API key needed."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [{ name = "ChandraChaan" }]
-keywords = ["job search", "auto apply", "resume", "ai agent", "claude", "linkedin", "playwright", "career"]
+keywords = ["job search", "auto apply", "resume", "ai agent", "claude", "ollama", "local llm", "linkedin", "naukri", "reed", "playwright", "career"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

@@ -132,7 +132,12 @@ def cmd_doctor(_args) -> None:
         line(True, "browser engine")
     except Exception as e:
         line(False, "browser engine", f"run: {sys.executable} -m playwright install chromium ({type(e).__name__})")
-    line(bool(os.environ.get("ANTHROPIC_API_KEY")), "Claude API key", "add it in Setup → API key")
+    from jobright import engine
+    print(f"  ✓ AI engine: {engine.describe()}")
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        print("    optional: a Claude API key adds rewritten, fact-checked resumes (Setup → AI engine)")
+    if (config.settings().get("ai") or {}).get("engine") == "local" and not engine.ollama_models():
+        print(f"  ✗ Ollama is not running; install it from ollama.com, then `ollama pull {engine.local_model()}`")
     line(config.PROFILE_PATH.exists(), "master profile", "upload your resume in Setup")
     line(bool(config.settings().get("tracks")), "role tracks", "Setup → Career plan")
     line(config.ANSWERS_PATH.exists(), "answers", "Setup → Answers")

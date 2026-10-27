@@ -75,6 +75,10 @@ def precheck(job: dict) -> Outcome | None:
                                statuses=("applied", "unverified", "interview", "offer"))
     if dup:
         return Outcome("duplicate", f"already applied to the same job: {dup['id']} ({dup['title']})")
+    cool = s["limits"].get("rejection_cooldown_days", 90)
+    rej = cool and store.rejected_by(job["company"], cool)
+    if rej:
+        return Outcome("skipped", f"{job['company']} rejected you for {rej['title']} recently; waiting {cool} days")
     cap = s["limits"].get("max_per_company_30d", 3)
     if store.applications_to_company(job["company"]) >= cap:
         return Outcome("skipped", f"already {cap} applications to {job['company']} in 30 days")

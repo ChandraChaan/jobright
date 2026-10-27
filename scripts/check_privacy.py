@@ -20,7 +20,7 @@ EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}")
 PHONE = re.compile(r"(?<![\w.])\+?\d[\d \-]{9,14}\d(?![\w.])")
 SAFE_EMAIL = re.compile(r"@(example\.(com|org|net)|users\.noreply\.github\.com|anthropic\.com)$|^noreply@", re.I)
 SAFE_PHONE = re.compile(r"^\+?(91 ?9000000\d{3}|44 ?7700 ?900\d{3}|0+|1234567890|9876543210)$")
-SKIP = re.compile(r"(\.png|\.jpg|\.pdf|\.lock|package-lock\.json)$|^scripts/check_privacy\.py$")
+SKIP = re.compile(r"(\.png|\.jpg|\.gif|\.webp|\.pdf|\.lock|package-lock\.json)$|^scripts/check_privacy\.py$")
 
 
 def tracked() -> list[str]:

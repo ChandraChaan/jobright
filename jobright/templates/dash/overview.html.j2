@@ -3,6 +3,7 @@
 <div class="row" style="justify-content:space-between">
   <h1>Today, {{ data.day }}</h1>
   <div class="row">
+    <a class="chip" href="/setup/key" title="Change the AI engine">{{ engine }}</a>
     {% if running %}<span class="chip">A run is in progress…</span>{% endif %}
     <form class="inline" method="post" action="/run"><button>Run now</button></form>
     {% if data.ready %}
@@ -17,7 +18,7 @@
   <div class="card tile"><b>{{ data.ready|length }}</b>ready for review</div>
   <div class="card tile"><b>{{ data.needs_you|length }}</b>need you</div>
   <div class="card tile"><b>{{ pending }}</b>questions to answer</div>
-  <div class="card tile"><b>${{ "%.2f"|format(data.spend_month) }}</b>Claude spend this month
+  <div class="card tile"><b>${{ "%.2f"|format(data.spend_month) }}</b>AI spend this month
     <div class="bar"><i style="width:{{ [100, (100 * data.spend_month / data.budget)|round]|min }}%"></i></div>
     <span class="muted">of ${{ data.budget }} · today ${{ "%.2f"|format(data.spend_day) }}</span></div>
 </div>
@@ -46,6 +47,19 @@
     </div>
   </div>
 </div>
+
+{% if tracks %}
+<h2>What's working</h2>
+<div class="table"><table>
+  <tr><th>Role track</th><th>Applied</th><th>Interviews</th><th>Offers</th><th>Rejected</th><th>Response rate</th><th>Ranking</th></tr>
+  {% for t in tracks %}
+  <tr><td>{{ t.track }}</td><td class="num">{{ t.applied }}</td><td class="num">{{ t.interview }}</td><td class="num">{{ t.offer }}</td>
+      <td class="num">{{ t.rejected }}</td><td class="num">{{ t.rate }}%</td>
+      <td class="muted">{% if t.factor > 1 %}boosted +{{ ((t.factor - 1) * 100)|round|int }}%{% elif t.factor < 1 %}lowered {{ ((t.factor - 1) * 100)|round|int }}%{% else %}learning{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+<p class="muted">Mark interviews, offers and rejections on each job's page. After 15 applications, tracks that get replies rank higher (at most ±15%).</p>
+{% endif %}
 
 <h2>Recent activity</h2>
 <div class="table"><table>

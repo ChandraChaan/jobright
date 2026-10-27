@@ -157,8 +157,23 @@ def import_resume(path: Path, llm: LLM | None = None) -> tuple[Profile, list[tup
     text = extract_text(path)
     if len(text.strip()) < 200:
         raise ValueError("Could not read enough text from that file. Try a PDF exported from Word/Google Docs, or a .docx.")
+    from jobright import engine, heuristics
+    if not engine.uses_ai():
+        profile = to_profile(heuristics.parse_resume(text))
+        return profile, unfounded(profile, text), text
     llm = llm or LLM()
-    x = llm.structured(
+    try:
+        x = _structured_profile(llm, text)
+    except Exception:
+        if engine.current() != "local":
+            raise
+        x = heuristics.parse_resume(text)     # a small local model can fail on a long CV
+    profile = to_profile(x)
+    return profile, unfounded(profile, text), text
+
+
+def _structured_profile(llm: LLM, text: str) -> XProfile:
+    return llm.structured(
         purpose="onboard_profile",
         model=config.settings()["models"]["verify"],
         instructions=config.prompt("onboard_profile"),
@@ -168,8 +183,6 @@ def import_resume(path: Path, llm: LLM | None = None) -> tuple[Profile, list[tup
         effort="high",
         max_tokens=32000,
     )
-    profile = to_profile(x)
-    return profile, unfounded(profile, text), text
 
 
 def save_profile(profile: Profile) -> Path:
@@ -214,7 +227,19 @@ class CareerPlan(BaseModel):
 
 
 def plan_career(profile: Profile, country_name: str, llm: LLM | None = None) -> CareerPlan:
+    from jobright import engine, heuristics
+    if not engine.uses_ai():
+        return heuristics.plan_career(profile, country_name)
     llm = llm or LLM()
+    try:
+        return _structured_plan(llm, profile, country_name)
+    except Exception:
+        if engine.current() != "local":
+            raise
+        return heuristics.plan_career(profile, country_name)
+
+
+def _structured_plan(llm: LLM, profile: Profile, country_name: str) -> CareerPlan:
     return llm.structured(
         purpose="onboard_career",
         model=config.settings()["models"]["tailor"],

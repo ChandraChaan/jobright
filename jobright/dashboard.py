@@ -12,7 +12,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from jobright import answers, config, store
+from jobright import answers, config, engine, learn, store
 from jobright.report import daily_data, write_daily
 
 app = FastAPI(title="jobright")
@@ -59,6 +59,8 @@ def overview():
         rules=s["apply_rules"],
         pending=len(answers.pending_questions()),
         running=_running(),
+        tracks=learn.summary(),
+        engine=engine.describe(),
     )
 
 

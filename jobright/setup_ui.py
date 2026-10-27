@@ -82,7 +82,7 @@ def status() -> dict[str, bool]:
     s = config.settings()
     prof = s.get("profile") or {}
     return {
-        "key": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "key": bool(os.environ.get("ANTHROPIC_API_KEY") or (s.get("ai") or {}).get("chosen")),
         "resume": config.PROFILE_PATH.exists(),
         "country": bool(prof.get("country")),
         "plan": bool(s.get("tracks")),
@@ -112,11 +112,21 @@ def overview():
 
 @router.get("/key", response_class=HTMLResponse)
 def key_page(error: str = ""):
-    return _page("key.html.j2", error=error, has_reed=bool(os.environ.get("REED_API_KEY")))
+    from jobright import engine
+    engine.ollama_models.cache_clear()
+    ai = config.settings().get("ai") or {}
+    return _page("key.html.j2", error=error, has_reed=bool(os.environ.get("REED_API_KEY")),
+                 has_key=bool(os.environ.get("ANTHROPIC_API_KEY")), choice=ai.get("engine") or "auto",
+                 ollama=engine.ollama_models(), local_model=engine.local_model(), now=engine.describe())
 
 
 @router.post("/key")
-def key_save(anthropic_key: str = Form(""), reed_key: str = Form("")):
+def key_save(engine_choice: str = Form("auto"), anthropic_key: str = Form(""), reed_key: str = Form(""),
+             local_model: str = Form("")):
+    ai = {"engine": engine_choice if engine_choice in ("auto", "free", "local", "claude") else "auto", "chosen": True}
+    if local_model.strip():
+        ai["local_model"] = local_model.strip()
+    config.save_settings({"ai": ai})
     if anthropic_key.strip():
         import anthropic
         try:

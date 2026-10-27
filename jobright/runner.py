@@ -7,7 +7,7 @@ import re
 from contextlib import contextmanager
 from datetime import date, datetime
 
-from jobright import config, store
+from jobright import config, engine, heuristics, store
 from jobright.jd import JobAnalysis, analyze, skill_match, years_band
 from jobright.llm import LLM, LLMError
 from jobright.pipeline import build_resume, profile_text
@@ -164,6 +164,18 @@ def _track(job: dict) -> tuple[str, dict]:
     return name, (config.settings().get("tracks") or {}).get(name, {})
 
 
+_LEARNED: dict | None = None
+
+
+def _learned() -> dict[str, float]:
+    """Track multipliers from your outcomes, read once per run."""
+    global _LEARNED
+    if _LEARNED is None:
+        from jobright import learn
+        _LEARNED = learn.factors()
+    return _LEARNED
+
+
 def priority_score(track: dict, fit: int, skill: int, growth: int, budget_max: float | None,
                    expected: float | None, current: float | None = None) -> int:
     """0-100 rank among jobs that pass: fit and skills say you can win it, growth and
@@ -240,6 +252,10 @@ def judge(job: dict, analysis: JobAnalysis, ptext: str) -> tuple[str, str, dict]
                 status = "salary_review"
     fields["priority"] = priority_score(track, analysis.fit_score, pct, analysis.growth_score,
                                         budget.max if budget else None, exp, cur)
+    learned = _learned().get(track_name, 1.0)
+    if learned != 1.0:
+        fields["priority"] = max(0, min(100, round(fields["priority"] * learned)))
+        notes.append(f"{'+' if learned > 1 else '-'}{abs(round(100 * (learned - 1)))}% from your interview results on this track")
     notes.append(f"priority {fields['priority']}")
     return status, "; ".join(notes), fields
 
@@ -265,7 +281,8 @@ def screen(llm: LLM, log=print) -> None:
             store.update_job(job["id"], status="duplicate", reason=f"same job as {dup['id']} ({dup['status']})")
             continue
         try:
-            analysis = analyze(llm, profile, _jd(job))
+            analysis = analyze(llm, profile, _jd(job)) if llm else \
+                heuristics.analyze(profile, _jd(job), job["title"], job["company"], job["location"] or "")
         except LLMError as e:
             store.update_job(job["id"], error=str(e))
             log(f"  {job['title']} @ {job['company']}: {e}")
@@ -274,7 +291,8 @@ def screen(llm: LLM, log=print) -> None:
         track_name, track = _track(job)
         # A stretch role that passes the quick read gets a second, deeper opinion
         # before any money is spent on a tailored resume.
-        if status == "screened" and track.get("stretch") and deep_left > 0:
+        deep_ok = engine.current() == "claude"   # a second opinion only when a stronger model exists
+        if status == "screened" and track.get("stretch") and deep_ok and deep_left > 0:
             deep_left -= 1
             try:
                 deep = analyze(llm, profile, _jd(job), deep=True)
@@ -283,7 +301,7 @@ def screen(llm: LLM, log=print) -> None:
                 fields["deep_checked"] = 1
             except LLMError as e:
                 status, reason = "discovered", f"deep check failed, will retry: {e}"
-        elif status == "screened" and track.get("stretch"):
+        elif status == "screened" and track.get("stretch") and deep_ok:
             status, reason = "discovered", "waiting for a deep check (per-run limit reached)"
         store.update_job(job["id"], status=status, reason=reason, **fields)
         mark = {"screened": "✓", "salary_review": "$"}.get(status, "·")
@@ -387,7 +405,8 @@ def run(sources: set[str] | None = None, apply: bool = True, log=print) -> dict:
         log(f"Discovered {new} new job(s)")
         refilter(log)
         apply_filters(log)
-        llm = LLM()
+        log(f"Engine: {engine.describe()}")
+        llm = LLM() if engine.uses_ai() else None
         screen(llm, log)
         tailor_screened(llm, log)
         if apply:

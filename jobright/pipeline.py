@@ -95,11 +95,15 @@ def job_dir(analysis: JobAnalysis) -> Path:
 
 def build_resume(profile: Profile, jd_text: str, *, llm: LLM | None = None,
                  analysis: JobAnalysis | None = None, log=print) -> Built:
-    llm = llm or LLM()
+    from jobright import engine, heuristics
+
+    rewrite = engine.rewrites_resumes()
+    if llm is None and engine.uses_ai():
+        llm = LLM()
 
     if analysis is None:
         log("Reading the job description…")
-        analysis = analyze(llm, profile, jd_text)
+        analysis = analyze(llm, profile, jd_text) if llm else heuristics.analyze(profile, jd_text)
         log(f"  {analysis.title} @ {analysis.company} — fit {analysis.fit_score}/100 ({analysis.recommendation})")
 
     out = job_dir(analysis)
@@ -107,13 +111,19 @@ def build_resume(profile: Profile, jd_text: str, *, llm: LLM | None = None,
     (out / "jd.txt").write_text(jd_text)
     (out / "analysis.json").write_text(analysis.model_dump_json(indent=2))
 
-    log("Tailoring the resume (Opus)…")
-    resume = tailor(llm, profile, analysis, jd_text)
-    log("Fact checking…")
-    issues = _check(llm, profile, resume)
+    if rewrite:
+        log("Tailoring the resume (Claude)…")
+        resume = tailor(llm, profile, analysis, jd_text)
+        log("Fact checking…")
+        issues = _check(llm, profile, resume)
+    else:
+        # Free / local engines: your own lines, ranked for this job. Rule checks still run.
+        log("Building the resume from your own lines, ranked for this job…")
+        resume = heuristics.tailor(profile, analysis)
+        issues = rule_issues(profile, resume)
     history = [{"round": 1, "issues": [i.model_dump() for i in issues]}]
 
-    if issues:
+    if issues and rewrite:
         log(f"  {len(issues)} line(s) rejected; revising…")
         resume = revise(llm, profile, analysis, jd_text, resume, [f"{i.where}: {i.text} — {i.problem}" for i in issues])
         issues = _check(llm, profile, resume)
