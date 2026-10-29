@@ -139,3 +139,10 @@ def test_recent_rejection_blocks_reapplying():
     assert store.add_job(source="naukri", external_id="r2", url="u", title="Mobile Architect", company="Rejecto")
     out = precheck(store.get_job("naukri:r2"))
     assert out and out.status == "skipped" and "rejected" in out.detail
+
+
+def test_track_outcomes_count_each_application_once():
+    for i, status in enumerate(("applied", "applied", "interview")):
+        assert store.add_job(source="linkedin", external_id=f"t{i}", url="u", title=f"Role {i}", company=f"Countco {i}")
+        store.update_job(f"linkedin:t{i}", status=status, track="countmobile", applied_at="2026-01-01T00:00:00")
+    assert store.track_outcomes()["countmobile"] == {"applied": 3, "interview": 1, "offer": 0, "rejected": 0}

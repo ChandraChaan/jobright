@@ -61,7 +61,13 @@ def _answer_chat(page: Page, ctx: JobContext, audit: list[dict]) -> list[str]:
                 return [question]
             chips.nth(options.index(choice)).click()
         else:
-            box.click()
+            try:
+                box.click(timeout=8000)
+            except Exception:
+                try:
+                    box.focus(timeout=3000)   # covered by an overlay: type into it directly
+                except Exception:
+                    return [f"{question} (could not type into Naukri's chat; answer: {res.value})"]
             if box.evaluate("e => e.tagName") == "DIV":  # contenteditable chat input
                 page.keyboard.type(res.value)
             else:

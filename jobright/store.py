@@ -230,7 +230,7 @@ def track_outcomes() -> dict[str, dict[str, int]]:
     for track, status, n in rows:
         t = out.setdefault(track, {"applied": 0, "interview": 0, "offer": 0, "rejected": 0})
         t["applied"] += n
-        if status in t:
+        if status in ("interview", "offer", "rejected"):
             t[status] += n
     return out
 

@@ -38,3 +38,16 @@ def test_answers_form_writes_bank(client):
     assert bank["willing_to_relocate"] is True and bank["salary_unit"] == "lpa"
     assert bank["relevant_experience_years"] == {"Flutter": 7.0}
     assert bank["gender"] is None                      # left empty: asked when a form needs it
+
+
+def test_company_site_jobs_offer_applying_by_hand_not_approve(client):
+    from jobright import store
+    assert store.add_job(source="linkedin", external_id="ext1", url="https://linkedin.example/job", title="Flutter Lead",
+                         company="Byhand Co", apply_type="external")
+    store.update_job("linkedin:ext1", status="needs_you",
+                     reason="company site the bot can't fill: https://careers.byhand.example/job/1")
+    html = client.get("/jobs/linkedin:ext1").text
+    assert 'href="https://careers.byhand.example/job/1"' in html and "I applied, mark applied" in html
+    assert "Approve and apply now" not in html
+    client.post("/jobs/linkedin:ext1/status", data={"status": "applied"})
+    assert store.get_job("linkedin:ext1")["applied_at"]

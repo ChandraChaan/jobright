@@ -8,7 +8,12 @@
     <div class="muted">{{ job.company }} · {{ job.location or "location not stated" }} · <span class="chip">{{ job.source }}</span> <span class="chip">{{ job.apply_type }}</span> · <a href="{{ job.url }}" target="_blank">open posting</a></div>
   </div>
   <div class="row">
-    {% if job.status in ("ready", "needs_you", "failed", "screened") and job.resume_pdf %}
+    {% set by_hand = job.status == "needs_you" and (job.reason or "").startswith("company site the bot can't fill") %}
+    {% if by_hand %}
+    <a class="btn primary" href="{{ job.reason.split(': ', 1)[1] if ': ' in job.reason else job.url }}" target="_blank">Apply on the company site</a>
+    {% if job.resume_pdf %}<a class="btn" href="/jobs/{{ job.id }}/resume.pdf" target="_blank">Tailored resume</a>{% endif %}
+    <form class="inline" method="post" action="/jobs/{{ job.id }}/status"><input type="hidden" name="status" value="applied"><button>I applied, mark applied</button></form>
+    {% elif job.status in ("ready", "needs_you", "failed", "screened") and job.resume_pdf %}
     <form class="inline" method="post" action="/jobs/{{ job.id }}/approve"><input type="hidden" name="now" value="1"><button class="primary">Approve and apply now</button></form>
     <form class="inline" method="post" action="/jobs/{{ job.id }}/approve"><button>Approve (next run)</button></form>
     {% endif %}
