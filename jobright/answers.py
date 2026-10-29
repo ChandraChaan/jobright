@@ -131,7 +131,8 @@ def _model_interpret(spec: FieldSpec) -> Interpretation:
 
 def interpret(spec: FieldSpec, ctx: JobContext) -> Interpretation:
     interp = classify(spec, ctx.siblings)
-    if interp.intent == Intent.UNKNOWN and spec.label.strip():
+    # confidence 1 on unknown: the rules know this one is yours to answer, so no model reading
+    if interp.intent == Intent.UNKNOWN and interp.confidence < 1 and spec.label.strip():
         interp = _model_interpret(spec)
     return interp
 

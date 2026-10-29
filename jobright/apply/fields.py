@@ -286,6 +286,8 @@ def classify(spec: FieldSpec, siblings: list[str] | None = None) -> Interpretati
         return it(Intent.RELOCATE)
     if _any(t, r"\bpreferred (work )?location|\blocation preference\b"):
         return it(Intent.PREFERRED_LOCATION)
+    if _any(t, r"\b(contract\w*|freelanc\w*|part[ -]time|temporary|hourly|c2c|c2h)\b"):
+        return it(Intent.UNKNOWN)   # the kind of engagement, not just where: yours to answer, once
     if _any(t, r"\b(work from office|wfo|on ?site|in office|in-office|commut\w*|office \d+ days)\b"):
         return it(Intent.ONSITE)
     if _any(t, r"\bhybrid\b"):

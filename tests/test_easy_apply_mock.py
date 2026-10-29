@@ -74,3 +74,21 @@ def test_removed_posting_is_unavailable(page, tmp_path):
                     "has been removed.</p></main></body></html>")
     out = linkedin.apply(page, {**job(), "url": gone.as_uri()}, PDF)
     assert out.status == "unavailable"
+
+
+def test_starred_or_error_marked_questions_are_asked_not_skipped(page):
+    # LinkedIn's newer forms mark these only with "*" or "This field is required", not the required attribute
+    from jobright.apply.forms import fill, scan
+    page.set_content("""<form>
+      <fieldset><legend>Are you ok with the Remote short time contract role*</legend>
+        <label><input type="radio" name="a" value="Yes">Yes</label><label><input type="radio" name="a" value="No">No</label></fieldset>
+      <fieldset><legend>Are you ok to be contacted via email only</legend>
+        <label><input type="radio" name="b" value="Yes">Yes</label><label><input type="radio" name="b" value="No">No</label>
+        <div class="error">This field is required</div></fieldset>
+      <fieldset><legend>Anything else to share?</legend>
+        <label><input type="radio" name="c" value="Yes">Yes</label><label><input type="radio" name="c" value="No">No</label></fieldset>
+    </form>""")
+    specs = scan(page.locator("form"))
+    assert [s.required for s in specs] == [True, False, False]
+    missing = fill(page, page.locator("form"), PDF, JobContext(job_id="t", source="linkedin")).missing
+    assert missing == ["Are you ok with the Remote short time contract role", "Are you ok to be contacted via email only"]

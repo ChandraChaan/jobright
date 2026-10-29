@@ -309,15 +309,17 @@ def screen(llm: LLM, log=print) -> None:
             f"prio {fields.get('priority', 0):>3} · {job['title']} @ {job['company']}")
 
 
-def tailor_screened(llm: LLM, log=print) -> None:
+def tailor_screened(llm: LLM, log=print) -> int:
+    """Tailors screened jobs; returns how many now wait for your Approve."""
     s = config.settings()
+    waiting = 0
     budget = s["limits"]["tailored_per_day"] - store.tailored_today()
     todo = store.jobs("screened", limit=max(budget, 0), order="priority DESC, fit_score DESC")
     profile = load_profile()
     for job in todo:
         if _over_budget():
             log("  monthly budget reached; stopping paid steps")
-            return
+            return waiting
         dup = store.find_duplicate(job["company"], job["title"], exclude_id=job["id"],
                                    statuses=("ready", "approved", "unverified", "applied", "interview", "offer"))
         if dup:
@@ -335,6 +337,8 @@ def tailor_screened(llm: LLM, log=print) -> None:
         auto = s["apply"]["auto_submit"].get(_auto_key(job), False)
         store.update_job(job["id"], status="approved" if auto else "ready",
                          out_dir=str(built.out_dir), resume_pdf=str(built.pdf))
+        waiting += not auto
+    return waiting
 
 
 def _auto_key(job: dict) -> str:
@@ -367,7 +371,7 @@ def requeue_answered(log=print) -> int:
     return n
 
 
-def apply_approved(dry_run: bool = False, job_ids: list[str] | None = None, log=print) -> None:
+def apply_approved(dry_run: bool = False, job_ids: list[str] | None = None, log=print) -> list:
     from jobright.apply.dispatch import apply_jobs, limit_key, verify_jobs
 
     s = config.settings()["limits"]
@@ -391,7 +395,7 @@ def apply_approved(dry_run: bool = False, job_ids: list[str] | None = None, log=
         picked.append(job)
     if picked:
         log(f"Applying to {len(picked)} job(s){' (dry run)' if dry_run else ''}…")
-    apply_jobs(picked, dry_run=dry_run, log=log)
+    return apply_jobs(picked, dry_run=dry_run, log=log)
 
 
 # --- the whole run -----------------------------------------------------------
@@ -408,13 +412,16 @@ def run(sources: set[str] | None = None, apply: bool = True, log=print) -> dict:
         log(f"Engine: {engine.describe()}")
         llm = LLM() if engine.uses_ai() else None
         screen(llm, log)
-        tailor_screened(llm, log)
-        if apply:
-            apply_approved(log=log)
+        from jobright.answers import pending_questions
+        asked = len(pending_questions())
+        ready = tailor_screened(llm, log)
+        results = apply_approved(log=log) if apply else []
         from jobright.report import write_daily
         path = write_daily()
         summary = {"new": new, "counts": store.status_counts(),
                    "spend_today": round(store.spend(date.today().isoformat()), 4), "report": str(path)}
         store.log_event(None, "run", summary)
         log(json.dumps(summary))
+        from jobright import notify
+        notify.after_run(results, ready=ready, new_questions=max(len(pending_questions()) - asked, 0), log=log)
         return summary

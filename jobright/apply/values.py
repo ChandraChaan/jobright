@@ -140,6 +140,9 @@ def _years_for(subject: str, bank: dict) -> Fact | None:
     return Fact(float(years), f"answers.yaml: relevant_experience_years.{name}", "years")
 
 
+_RATE = re.compile(r"\b(hourly|per hour|an hour|hour rate|daily rate|day rate|per day|a day)\b|/\s*(hr|hour|day)\b")
+
+
 def salary_facts(bank: dict) -> tuple[str, float | None, float | None]:
     """(unit, current, expected) from the answer bank. unit is "lpa" (India) or
     "annual"; older banks used current_ctc_lpa / expected_ctc_lpa."""
@@ -232,6 +235,8 @@ def resolve(interp: Interpretation, spec: FieldSpec, ctx: JobContext, bank: dict
         return None  # not shown in the profile: you decide, once
 
     if i in (Intent.CURRENT_CTC, Intent.EXPECTED_CTC):
+        if _RATE.search(norm(spec.text)):
+            return None  # your salary is yearly; an hourly or day rate is yours to give, once
         unit, cur, exp = salary_facts(bank)
         if i == Intent.CURRENT_CTC:
             return Fact(cur, f"answers.yaml: current_salary ({unit})", unit) if cur is not None else None

@@ -90,18 +90,19 @@ _SCAN = r"""
       groups.add(key);
       const items = el.name ? [...root.querySelectorAll(`input[type=${type}][name="${CSS.escape(el.name)}"]`)] : [el];
       const fs = el.closest('fieldset');
-      let q = fs && fs.querySelector('legend') ? clean(fs.querySelector('legend').innerText) : '';
-      if (!q) {
+      let raw = fs && fs.querySelector('legend') ? fs.querySelector('legend').innerText : '';
+      if (!clean(raw)) {
         let p = el.closest('[role="radiogroup"], [role="group"]') || el.parentElement?.parentElement;
-        for (let i = 0; i < 3 && p && !q; i++, p = p.parentElement) {
+        for (let i = 0; i < 3 && p && !clean(raw); i++, p = p.parentElement) {
           const l = p.querySelector('legend, label:not(:has(input)), [class*="label"], [class*="question"], span[class*="title"]');
-          if (l && !items.some(r => l.contains(r))) q = clean(l.innerText);
+          if (l && !items.some(r => l.contains(r))) raw = l.innerText;
         }
       }
+      const q = clean(raw), starred = /\*\s*$/.test((raw || '').trim());
       items.forEach((r, i) => r.setAttribute('data-jr', `${n}-${i}`));
       const err = fs ? [...fs.querySelectorAll('[class*="error" i], [role=alert]')].map(d => clean(d.innerText)).filter(Boolean).join(' ') : errorOf(el);
       out.push({n: String(n), kind: type === 'radio' ? 'radio' : 'checkbox_group', label: q, hint: '', name: el.name || '',
-                options: items.map(labelFor), required: items.some(r => r.required) || !!fs?.querySelector('[aria-required="true"]') || required,
+                options: items.map(labelFor), required: items.some(r => r.required) || !!fs?.querySelector('[aria-required="true"]') || required || starred,
                 value: (items.find(r => r.checked) && labelFor(items.find(r => r.checked))) || '', error: err});
       n++; continue;
     }
@@ -202,6 +203,8 @@ def fill(page: Page, root: Locator | None, resume_pdf: Path, ctx: JobContext | s
 
     for s in specs:
         label = s.label or s.name
+        if not s.required and re.search(r"\b(is|are) required\b|\brequired field\b", s.error or "", re.I):
+            s.required = True     # marked only by its error, e.g. LinkedIn's "This field is required"
         try:
             if current_role and re.search(r"^(end date|to) (month|year)$", label, re.I):
                 continue

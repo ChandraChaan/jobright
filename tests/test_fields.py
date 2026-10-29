@@ -26,6 +26,7 @@ def spec(label, kind="text", options=None, **kw):
     ("Are you currently serving notice period?", "radio", Intent.SERVING_NOTICE, None),
     ("How soon you can join?", "text", Intent.NOTICE_PERIOD, None),
     ("Are you comfortable working in a hybrid setting?", "radio", Intent.HYBRID, None),
+    ("Are you ok with the Remote short time contract role", "radio", Intent.UNKNOWN, None),   # contract, not just remote
     ("Year of graduation", "text", Intent.GRADUATION_YEAR, None),
     ("Start date year", "text", Intent.START_YEAR, None),
 ])
@@ -92,6 +93,22 @@ def test_units_for_ctc_and_notice():
 @pytest.mark.parametrize("budget,expected", [(60, "40"), (40, "40"), (35, "35"), (30, "30"), (None, "40")])
 def test_expected_ctc_follows_the_budget(budget, expected):
     assert value("What is your Expected CTC?", ctx=JobContext(job_id="t", budget_max_lpa=budget)) == expected
+
+
+def test_hourly_and_day_rates_are_never_taken_from_the_yearly_salary():
+    # the AI engine read this LinkedIn question as expected CTC, so the yearly LPA figure went in as the hourly rate
+    answers._write_yaml(answers.FIELD_CACHE_PATH, {
+        answers._cache_key(spec("What is your expected hourly rate?")): {"intent": "expected_ctc"}})
+    assert value("What is your expected hourly rate?") is None
+    assert value("Expected pay per hour (USD)", "number") is None
+    assert value("Expected day rate", "number") is None
+    assert value("What is your Expected CTC?") == "40"
+
+
+def test_contract_questions_are_not_read_as_remote_by_the_model(monkeypatch):
+    monkeypatch.setattr(answers, "_model_interpret", lambda spec: pytest.fail("rules already decided this is yours"))
+    assert value("Are you ok with the Remote short time contract role", "radio", ["Yes", "No"]) is None
+    assert any("contract" in p["question"] for p in answers.pending_questions())
 
 
 def test_budget_below_current_ctc_is_flagged_not_answered():

@@ -89,5 +89,12 @@ resume:
 schedule:
   every_hours: 3
 
+# A desktop notification after each scheduled run, only when something
+# happened: a question for you, a form the bot can't fill, a sign-in or
+# security check, resumes waiting for Approve, or applications sent.
+notify:
+  enabled: true
+  applied: true                # false = only notify when it needs you
+
 dashboard:
   port: 8765
