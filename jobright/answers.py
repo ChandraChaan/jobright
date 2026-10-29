@@ -31,7 +31,7 @@ PENDING_PATH = config.DATA / "pending_questions.yaml"
 FIELD_CACHE_PATH = config.DATA / "field_cache.yaml"
 
 __all__ = ["JobContext", "Resolution", "answer_field", "answer", "bank", "saved", "save_answer",
-           "pending_questions", "add_pending", "norm_q"]
+           "pending_questions", "add_pending", "norm_q", "base_question"]
 
 
 def norm_q(q: str) -> str:
@@ -64,6 +64,14 @@ def save_answer(question: str, answer: str) -> None:
     _write_yaml(SAVED_PATH, dict(sorted(data.items())))
     pending = [p for p in pending_questions() if norm_q(p["question"]) != norm_q(question)]
     _write_yaml(PENDING_PATH, pending)
+
+
+_NOTE = re.compile(r"\s*\((site says|site pre-filled|could not fill|could not type|Naukri did not).*$")
+
+
+def base_question(missing: str) -> str:
+    """A blocking question without the bot's note on why it stopped there."""
+    return _NOTE.sub("", missing)
 
 
 def pending_questions() -> list[dict]:

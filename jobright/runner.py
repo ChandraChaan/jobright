@@ -349,7 +349,7 @@ def _auto_key(job: dict) -> str:
 
 def requeue_answered(log=print) -> int:
     """Jobs waiting only on questions you have since answered go back to approved."""
-    from jobright.answers import answer_field, norm_q, pending_questions
+    from jobright.answers import answer_field, base_question, norm_q, pending_questions
     from jobright.apply.dispatch import job_context
     from jobright.apply.fields import FieldSpec
 
@@ -358,8 +358,7 @@ def requeue_answered(log=print) -> int:
     for job in store.jobs("needs_you", limit=500):
         if not job.get("missing_json") or not job.get("resume_pdf"):
             continue
-        missing = [re.sub(r"\s*\((site says|site pre-filled|could not fill|Naukri did not).*$", "", m)
-                   for m in json.loads(job["missing_json"])]
+        missing = [base_question(m) for m in json.loads(job["missing_json"])]
         if any(norm_q(m) in open_q for m in missing):
             continue
         ctx = job_context(job)

@@ -32,10 +32,28 @@
 
 {% if job.reason %}<p><b>Why:</b> {{ job.reason }}</p>{% endif %}
 {% if job.evidence %}<p class="st-applied"><b>Confirmed by the site:</b> “{{ job.evidence }}”</p>{% endif %}
-{% if job.missing_json and job.status == "needs_you" %}
-<div class="card" style="margin-bottom:10px"><b>Questions blocking this application</b>
-  <ul>{% for m in job.missing_json|fromjson %}<li>{{ m }}</li>{% endfor %}</ul>
-  <span class="muted">Answer them on the <a href="/questions">Questions</a> page; the next run retries this job by itself.</span></div>
+{% if queued %}<p class="card">Answers saved. A run is using the browser right now, so this job is applied when it frees up (this run if it hasn't reached applying yet, otherwise the next one).</p>{% endif %}
+{% if blocking %}
+<div class="card" style="margin-bottom:10px">
+  <b>Questions blocking this application</b>
+  <p class="muted" style="margin-top:4px">The bot stopped here rather than guess. Your answers are saved for every future form that asks the same question.</p>
+  <div class="row" style="align-items:flex-start; gap:16px; flex-wrap:wrap">
+    <form method="post" action="/jobs/{{ job.id }}/answers" style="flex:1 1 320px; min-width:0">
+      {% for b in blocking %}
+      <label style="display:block; margin-bottom:10px"><span>{{ b.question }}</span>
+        {% if b.note %}<div class="muted" style="font-size:12.5px">{{ b.note }}</div>{% endif %}
+        {% if b.options %}
+        <select name="q::{{ b.question }}" style="width:100%"><option value=""></option>{% for o in b.options %}<option {% if o == b.value %}selected{% endif %}>{{ o }}</option>{% endfor %}</select>
+        {% else %}
+        <input type="text" name="q::{{ b.question }}" value="{{ b.value }}" style="width:100%">
+        {% endif %}
+      </label>
+      {% endfor %}
+      <button class="primary">{{ "Save answers (applies after the current run)" if running else "Save answers and apply now" }}</button>
+    </form>
+    {% if shots %}<a href="/shot?path={{ shots[0]|urlencode }}" target="_blank" style="flex:1 1 320px; min-width:0"><img src="/shot?path={{ shots[0]|urlencode }}" alt="The form where the bot stopped" style="width:100%; border:1px solid var(--line); border-radius:8px"></a>{% endif %}
+  </div>
+</div>
 {% endif %}
 {% if job.budget_max_lpa or job.status == "salary_review" %}
 <div class="card" style="margin-bottom:10px">
@@ -79,7 +97,7 @@
     <h2>Your status</h2>
     <div class="card">
       <form method="post" action="/jobs/{{ job.id }}/status">
-        <select name="status">{% for s in user_statuses %}<option {{ "selected" if s == job.status }}>{{ s }}</option>{% endfor %}</select>
+        <select name="status">{% if job.status not in user_statuses %}<option value="" selected>{{ job.status }} (unchanged)</option>{% endif %}{% for s in user_statuses %}<option {{ "selected" if s == job.status }}>{{ s }}</option>{% endfor %}</select>
         <textarea name="notes" rows="3" placeholder="Notes (recruiter, interview date…)" style="margin-top:8px">{{ job.notes or "" }}</textarea>
         <button style="margin-top:8px">Save</button>
       </form>

@@ -94,7 +94,7 @@ def shot(path: str):
 
 
 @app.get("/jobs/{job_id:path}", response_class=HTMLResponse)
-def job_detail(job_id: str):
+def job_detail(job_id: str, request: Request):
     job = store.get_job(job_id)
     if not job:
         raise HTTPException(404)
@@ -106,7 +106,37 @@ def job_detail(job_id: str):
             "SELECT * FROM events WHERE job_id=? ORDER BY id DESC", (job_id,)).fetchall()]
     shots = [json.loads(e["detail"]).get("screenshot") for e in events if e["kind"] == "apply" and e["detail"]]
     return _page("job.html.j2", job=job, report=report, events=events,
-                 shots=[s for s in shots if s], user_statuses=USER_STATUSES)
+                 shots=[s for s in shots if s], user_statuses=USER_STATUSES,
+                 blocking=_blocking(job), running=_running(), queued=bool(request.query_params.get("queued")))
+
+
+def _blocking(job: dict) -> list[dict]:
+    """The questions that stopped this job, ready to answer in place."""
+    if job["status"] != "needs_you" or not job.get("missing_json"):
+        return []
+    pending = {answers.norm_q(p["question"]): p for p in answers.pending_questions()}
+    saved = answers.saved()
+    out = []
+    for m in json.loads(job["missing_json"]):
+        q = answers.base_question(m)
+        p = pending.get(answers.norm_q(q), {})
+        out.append({"question": q, "note": m[len(q):].strip(" ()"), "options": p.get("options") or [],
+                    "value": saved.get(answers.norm_q(q), "")})
+    return out
+
+
+@app.post("/jobs/{job_id:path}/answers")
+async def answer_and_apply(job_id: str, request: Request):
+    """Save your answers to this job's blocking questions, then apply (now, or when the current run frees the browser)."""
+    form = await request.form()
+    for key, value in form.items():
+        if key.startswith("q::") and str(value).strip():
+            answers.save_answer(key[3:], str(value).strip())
+    store.update_job(job_id, status="approved", reason="you answered its questions; applying")
+    if _running():
+        return RedirectResponse(f"/jobs/{job_id}?queued=1", status_code=303)
+    _spawn("apply", "--job", job_id)
+    return RedirectResponse(f"/jobs/{job_id}", status_code=303)
 
 
 @app.post("/jobs/{job_id:path}/approve")
@@ -118,10 +148,10 @@ def approve(job_id: str, now: str = Form("")):
 
 
 @app.post("/jobs/{job_id:path}/status")
-def set_status(job_id: str, status: str = Form(...), notes: str = Form("")):
-    if status not in USER_STATUSES + ["ready", "screened"]:
+def set_status(job_id: str, status: str = Form(""), notes: str = Form("")):
+    if status and status not in USER_STATUSES + ["ready", "screened"]:
         raise HTTPException(400)
-    fields = {"status": status}
+    fields = {"status": status} if status else {}   # empty: save the notes, keep the status
     if notes:
         fields["notes"] = notes
     store.update_job(job_id, **fields)

@@ -51,3 +51,36 @@ def test_company_site_jobs_offer_applying_by_hand_not_approve(client):
     assert "Approve and apply now" not in html
     client.post("/jobs/linkedin:ext1/status", data={"status": "applied"})
     assert store.get_job("linkedin:ext1")["applied_at"]
+
+
+def test_blocking_questions_are_answered_on_the_job_page_then_applied(client, monkeypatch):
+    import json
+    from jobright import answers, dashboard, store
+    spawned = []
+    monkeypatch.setattr(dashboard, "_spawn", lambda *a: spawned.append(a))
+    monkeypatch.setattr(dashboard, "_running", lambda: False)
+    answers.add_pending("Are you ok with the Remote short time contract role", "radio", ["Yes", "No"], "linkedin:q1")
+    assert store.add_job(source="linkedin", external_id="q1", url="u", title="Mobile Developer", company="Askme Co",
+                         apply_type="easy_apply")
+    store.update_job("linkedin:q1", status="needs_you", reason="Easy Apply asked questions only you can answer",
+                     missing_json=json.dumps(["Are you ok with the Remote short time contract role",
+                                              "Expected hourly rate (site says: This field is required)"]))
+    html = client.get("/jobs/linkedin:q1").text
+    assert 'name="q::Are you ok with the Remote short time contract role"' in html and "<option >Yes</option>" in html
+    assert 'name="q::Expected hourly rate"' in html and "site says: This field is required" in html
+    client.post("/jobs/linkedin:q1/answers", data={"q::Are you ok with the Remote short time contract role": "No",
+                                                    "q::Expected hourly rate": "20"})
+    assert answers.saved()[answers.norm_q("Expected hourly rate")] == "20"
+    assert answers.pending_questions() == []
+    assert store.get_job("linkedin:q1")["status"] == "approved"
+    assert spawned == [("apply", "--job", "linkedin:q1")]
+
+
+def test_saving_a_note_keeps_the_status(client):
+    from jobright import store
+    assert store.add_job(source="linkedin", external_id="n1", url="u", title="Flutter Dev", company="Noteco")
+    store.update_job("linkedin:n1", status="approved")
+    assert '<option value="" selected>approved (unchanged)</option>' in client.get("/jobs/linkedin:n1").text
+    client.post("/jobs/linkedin:n1/status", data={"status": "", "notes": "recruiter called"})
+    job = store.get_job("linkedin:n1")
+    assert job["status"] == "approved" and job["notes"] == "recruiter called"
